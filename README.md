@@ -1,4 +1,5 @@
 # WARMer
+[![Python CI/CD tests](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml/badge.svg)](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml)
 
 WARMer is used to process data from WARM 
 
