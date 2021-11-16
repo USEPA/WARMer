@@ -1,6 +1,6 @@
 ## SQL queries for data access in openLCA
 
-### Generate list of processes with reference flows, saved as `process_map.csv`
+### Generate a table of processes with reference flows, saved as `process_map.csv`
 ```
 select
 processes.name as ProcessName,
@@ -21,3 +21,17 @@ left outer join tbl_flows flows on exchanges.f_flow = flows.id
 left outer join tbl_locations loc on processes.F_location = loc.id
 ```
 
+### Generate a table of parameters
+```
+select
+	processes.name as ProcName,
+	param.name as ParamName,
+	param.value as ParamValue,
+	param.scope as ParamScope,
+	Param.IS_INPUT_PARAM as InputParam,
+	Param.formula as Formula,
+	cast (param.description as varchar(2000)) as ParamDesc
+
+from tbl_parameters param
+left outer join tbl_processes processes on param.f_owner = processes.ID
+```
