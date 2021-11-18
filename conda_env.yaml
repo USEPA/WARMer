@@ -7,6 +7,6 @@ dependencies:
     - numpy=1.21.2
     - spyder            # or any other IDE
 
-#    - pip:
-        #- tabula-py==2.2.0      # PDF reader
+   - pip:
+        - olca-ipc==0.0.10     # latest version 0.0.11 incompatible w/ FEDEFL
         #- "git+https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-Listegg=fedelemflowlist"
