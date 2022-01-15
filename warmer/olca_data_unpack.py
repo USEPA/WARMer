@@ -4,6 +4,7 @@
 
 import olca
 import pandas as pd
+import pickle
 
 
 # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
@@ -14,7 +15,11 @@ client = olca.Client(8080)
 
 ## Get olca data
 flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
-processes = tuple(client.get_all(olca.Process)) 
+processes = tuple(client.get_all(olca.Process))
+
+pickle.dump(processes, open("processes.pickle", "wb"))
+processes = pickle.load(open("processes.pickle", "rb"))
+
 # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
 # f = client.get('Flow', 'Carbon dioxide')
 get_params = False  # takes 16min+ to get these
@@ -24,8 +29,8 @@ if get_params: parameters = tuple(client.get_all(olca.Parameter))
 # start_time = time.time()
 # print("--- %s seconds ---" % (time.time() - start_time))
 
-# for WARM, olca.X classes that get_all() 
-    # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef, 
+# for WARM, olca.X classes that get_all()
+    # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
         # FlowPropertyFactor, FlowPropertyType, FlowType, ProcessLink
     # can retrieve: Category, FlowProperty, ModelType, ProductSystem, UnitGroup
 temp = tuple(client.get_all(olca.ProductSystem)) # wrap in tuple to make it iterable
@@ -34,17 +39,17 @@ temp = tuple(client.get_all(olca.ProductSystem)) # wrap in tuple to make it iter
 ## flatten nested olca data classes
 def unpack_olca_tuple_to_df(iterable, cols = ['all']):
     """
-    Extract olca object __dict__ values by mapping vars() over collection  
+    Extract olca object __dict__ values by mapping vars() over collection
     :param iterable: obj (e.g., tuple, list, pd.Series) containing olca objs
     :param cols: optional, list specifying column(s) to return
     """
     # [next] identify nan elements before map()
     df = pd.DataFrame(map(vars, iterable))
     if cols != ['all']: df = df[cols]
-    
+
     # # extract column of objects and rename field
-    # temp = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])       
-    #         .rename(columns={'name':'category_name'}))                   
+    # temp = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])
+    #         .rename(columns={'name':'category_name'}))
     return df
 
 # def unpack_olca_dict_col(col):
@@ -54,7 +59,7 @@ def unpack_olca_tuple_to_df(iterable, cols = ['all']):
 #     """
 #     if col.dtype == 'O':
 #         if is_col_olca(col):
-            
+
 #             df = pd.DataFrame(vars(col), index=[0])
 #             ## still working through this
 #         else:
@@ -64,7 +69,7 @@ def unpack_olca_tuple_to_df(iterable, cols = ['all']):
 
 def unpack_list_simple_col(col):
     """
-    Attempt to unpack column single-element lists; return warning if >1 element 
+    Attempt to unpack column single-element lists; return warning if >1 element
     :param col: pandas dataframe column (i.e., numpy array)
     """
     if is_list_col(col):
@@ -73,15 +78,15 @@ def unpack_list_simple_col(col):
             return col
         else:
             print(f'{col.name} lists have >1 element each; extract as table')
-    return col   
-    
+    return col
+
 def is_list_col(col):
     """
     Confirm (T/F) whether column consists entirely of list objects.
     If expecting T but returns F check for None's, etc.
     """
     tf = all(col.apply(lambda x: isinstance(x, list)))
-    return tf      
+    return tf
 
 def is_col_olca(col):
     """
@@ -93,24 +98,42 @@ def is_col_olca(col):
     if not tf: print('Column does not uniformly contain olca schema objects')
     return tf
 
+def unpack_exchanges(df_proc):
+    """
+    Extract exchange data from a dataframe of olca data classes
+    """
+    exch_list = []
+    for index, row in df_proc.iterrows():
+        for ex in row['exchanges']:
+            y = ex.to_json()
+            exc_dict = {'process': row['name'],
+                        'flow': y['flow']['name'],
+                        'amount': y['amount']}
+            exch_list.append(exc_dict)
+    df = pd.DataFrame(exch_list)
+    return df
+
 
 if __name__ == "__main__":  # revert to "==" later
-    
+
+
     ## convert tuples to dfs
     # drop flow rows (513, 514) b/c irregular formatting & lack of info
     flows_exclude = ['Baseline scenario','Alternative scenario']  # rows (513, 514)
     df_flow = (unpack_olca_tuple_to_df(flows)
                 .query('name not in @flows_exclude')
                 .reset_index())
-    
+
     df_prcs = unpack_olca_tuple_to_df(processes)  # plenty of columns to expand here too
+    df_exch = unpack_exchanges(df_prcs)
+
     if get_params: df_param = unpack_olca_tuple_to_df(parameters)
-    
+
     olca_obj = df_prcs.exchanges[0][0]
-    
+
     unpack_test = unpack_olca_tuple_to_df(df_prcs.process_type)
 
-    
+
 if False:  # include in script execution?
 
     dir(olca_obj)
@@ -119,7 +142,7 @@ if False:  # include in script execution?
     # vars(olca_obj) == olca_obj.__dict__
     # iter(vars(prcs_smpl.exchanges[1][0]))  # can't construct df from just this
     temp = pd.DataFrame(vars(olca_obj), index=[0])
-    
+
     # function to convert each to a csv?
     df_prcs.name[1]  # combustion
     df_prcs.exchanges[1]  # 15 exchanges
@@ -127,23 +150,23 @@ if False:  # include in script execution?
     vars(vars(df_prcs.exchanges[1][0])['flow'])
     vars(vars(vars(df_prcs.exchanges[1][0])['flow'])['flow_type'])
         # extraneous; elementary vs. product flows are easy to spot
-    vars(vars(df_prcs.exchanges[1][0])['flow_property'])  
+    vars(vars(df_prcs.exchanges[1][0])['flow_property'])
         # need ['name'] only to reconstruct flat olca export
     vars(df_prcs.exchanges[1][14])  # input: T/F determines inputs vs outputs
 
-    
-    ########################################################################### 
+
+    ###########################################################################
     # unpack flow_properties' single-element list values
     df_flow.flow_properties = unpack_list_simple_col(df_flow.flow_properties)
     df_flow['flow_properties'] = df_flow['flow_properties'].apply(lambda x: x[0])
-    
+
     # another approach to expanding olca obj columns
     temp = (df_flow['category'].apply(lambda x: pd.Series(vars(x)))
             .loc[:,['name','category_path']]
             .rename(columns={'name':'category_name'}))
-    
+
     # extract column of objects and rename field
-    a = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])       
+    a = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])
             .rename(columns={'name':'category_name'}))
     # unit test: # df_flow['category'][i].__dict__['name'] == a['category_name'][i]
     b = pd.concat([df_flow,a],axis=1)
