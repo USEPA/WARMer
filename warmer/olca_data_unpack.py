@@ -116,12 +116,22 @@ def unpack_exchanges(df_proc):
     for index, row in df_proc.iterrows():
         for ex in row['exchanges']:
             y = ex.to_json()
-            exc_dict = {'process': row['name'],
-                        'flow': y['flow']['name'],
-                        'amount': y['amount']}
+            exc_dict = exch_dict(row, y)
             exch_list.append(exc_dict)
     df = pd.DataFrame(exch_list)
     return df
+
+
+def exch_dict(proc, exch):
+    process = proc['name']
+    try: category = proc['category'].name
+    except AttributeError: category = ''
+    flow = exch['flow']['name']
+    flow_type = exch['flow']['flowType']
+    amount = exch['amount']
+    return {'process': process, 'category': category,
+            'flow': flow, 'flow_type': flow_type,
+            'amount': amount}
 
 
 if __name__ == "__main__":  # revert to "==" later
@@ -129,10 +139,10 @@ if __name__ == "__main__":  # revert to "==" later
 
     ## convert tuples to dfs
     # drop flow rows (513, 514) b/c irregular formatting & lack of info
-    flows_exclude = ['Baseline scenario','Alternative scenario']  # rows (513, 514)
-    df_flow = (unpack_olca_tuple_to_df(flows)
-                .query('name not in @flows_exclude')
-                .reset_index())
+    # flows_exclude = ['Baseline scenario','Alternative scenario']  # rows (513, 514)
+    # df_flow = (unpack_olca_tuple_to_df(flows)
+    #             .query('name not in @flows_exclude')
+    #             .reset_index())
 
     df_prcs = unpack_olca_tuple_to_df(processes)  # plenty of columns to expand here too
     df_exch = unpack_exchanges(df_prcs)
