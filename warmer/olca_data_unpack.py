@@ -6,24 +6,35 @@ import olca
 import pandas as pd
 import pickle
 
+get_data = False
 
-# Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
-client = olca.Client(8080)
+if get_data:
+    # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
+    client = olca.Client(8080)
 
-# print(vars(olca.schema))  # view all exportable data
-# loading from unaltered WARM db: 799 flows, 2140 processes, 69635 parameters
+    # print(vars(olca.schema))  # view all exportable data
+    # loading from unaltered WARM db: 799 flows, 2140 processes, 69635 parameters
 
-## Get olca data
-flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
-processes = tuple(client.get_all(olca.Process))
+    ## Get olca data
+    flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
+    pickle.dump(flows, open("flows.pickle", "wb"))
 
-pickle.dump(processes, open("processes.pickle", "wb"))
+    processes = tuple(client.get_all(olca.Process))
+    pickle.dump(processes, open("processes.pickle", "wb"))
+
+    # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
+    # f = client.get('Flow', 'Carbon dioxide')
+    get_params = False  # takes 16min+ to get these
+    if get_params:
+        parameters = tuple(client.get_all(olca.Parameter))
+        pickle.dump(parameters, open("parameters.pickle", "wb"))
+
+    temp = tuple(client.get_all(olca.ProductSystem)) # wrap in tuple to make it iterable
+
+# flows = pickle.load(open("flows.pickle", "rb"))
 processes = pickle.load(open("processes.pickle", "rb"))
+# parameters = pickle.load(open("parameters.pickle", "rb"))
 
-# for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
-# f = client.get('Flow', 'Carbon dioxide')
-get_params = False  # takes 16min+ to get these
-if get_params: parameters = tuple(client.get_all(olca.Parameter))
 
 
 # start_time = time.time()
@@ -33,7 +44,6 @@ if get_params: parameters = tuple(client.get_all(olca.Parameter))
     # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
         # FlowPropertyFactor, FlowPropertyType, FlowType, ProcessLink
     # can retrieve: Category, FlowProperty, ModelType, ProductSystem, UnitGroup
-temp = tuple(client.get_all(olca.ProductSystem)) # wrap in tuple to make it iterable
 
 
 ## flatten nested olca data classes
