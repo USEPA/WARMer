@@ -1,0 +1,24 @@
+foreground:
+    - MSW (recycling|combustion|composting|landfilling|source reduction).*
+    - Anaerobic digestion.*
+
+background_map:
+    - Product manufacturing, from.*
+    - Steel recycling.*
+    - Compost piles turning, operation with diesel
+    - Wood chipping
+    - Timber harvesting.*
+    - Landfill operation, diesel
+    - Distillate oil for AD, consumption
+    - Electricity generation, at grid.*
+    - Electronics shredding for recycling
+    - Transport of ash to landfill
+    - Transport of MSW, by truck
+
+background_deep:
+    - (Baseline|Alternative) scenario
+    - .*, (baseline|alternative) scenario
+    - Process energy.*
+    - Transport.*         # evaluated sequentially, after patterns in background_map, to avoid multiple match conflict
+    - Distillate oil.*    # evaluated sequentially, after patterns in background_map, to avoid multiple match conflict
+    - Residual oil.*

@@ -3,44 +3,46 @@
 # import time
 
 import olca
+import numpy as np
 import pandas as pd
 import pickle
+import yaml
+from pathlib import Path
+
+modulepath = Path(__file__).parent
+datapath = modulepath/'data'
 
 get_data = False
+get_params = False
 
-if get_data:
+if get_data:  # get olca data
     # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
     client = olca.Client(8080)
 
     # print(vars(olca.schema))  # view all exportable data
-    # loading from unaltered WARM db: 799 flows, 2140 processes, 69635 parameters
-
-    ## Get olca data
-    flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
-    pickle.dump(flows, open("flows.pickle", "wb"))
-
-    processes = tuple(client.get_all(olca.Process))
-    pickle.dump(processes, open("processes.pickle", "wb"))
+    # from WARMv15 db: 799 flows, 2140 processes, 69635 parameters
 
     # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
     # f = client.get('Flow', 'Carbon dioxide')
-    get_params = False  # takes 16min+ to get these
-    if get_params:
+    # temp = tuple(client.get_all(olca.ProductSystem))
+    
+    flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
+    pickle.dump(flows, open(datapath/'olca'/'flows.pickle', 'wb'))
+
+    processes = tuple(client.get_all(olca.Process))
+    pickle.dump(processes, open(datapath/'olca'/'processes.pickle', 'wb'))
+
+    if get_params: # takes 16min+ to get these
         parameters = tuple(client.get_all(olca.Parameter))
-        pickle.dump(parameters, open("parameters.pickle", "wb"))
-
-    temp = tuple(client.get_all(olca.ProductSystem)) # wrap in tuple to make it iterable
-
-# flows = pickle.load(open("flows.pickle", "rb"))
-processes = pickle.load(open("processes.pickle", "rb"))
-# parameters = pickle.load(open("parameters.pickle", "rb"))
+        pickle.dump(parameters, open(datapath/'olca'/'parameters.pickle', 'wb'))
 
 
+if not get_data:  # retrieve from pickle
+    # flows = pickle.load(open("flows.pickle", "rb"))
+    processes = pickle.load(open(datapath/'olca'/'processes.pickle', 'rb'))
+    # parameters = pickle.load(open("parameters.pickle", "rb"))
 
-# start_time = time.time()
-# print("--- %s seconds ---" % (time.time() - start_time))
-
-# for WARM, olca.X classes that get_all()
+# for WARM db, olca.X classes that have a get_all() method...
     # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
         # FlowPropertyFactor, FlowPropertyType, FlowType, ProcessLink
     # can retrieve: Category, FlowProperty, ModelType, ProductSystem, UnitGroup
@@ -134,9 +136,28 @@ def exch_dict(proc, exch):
             'amount': amount}
 
 
+def classify_prcs(df):
+    """
+    Classify WARM db processes as foreground, background_map, or background_deep
+    :param df: pandas dataframe of olca processes
+    """
+    with open(modulepath/'processmapping'/'WARMv15_prcs_regex.yaml', 'r') as f:
+        rgx = yaml.safe_load(f)
+    # with open(modulepath/'processmapping'/'WARMv15_regex_prcs.yaml', 'r') as f:
+    #     rgx_prcs = yaml.safe_load(f)
+                
+    df['fg'] = df['name'].str.contains('|'.join(rgx['foreground']))    
+    df['bg_map'] = df['name'].str.contains('|'.join(rgx['background_map']))    
+    df['bg_deep'] = df['name'].str.contains('|'.join(rgx['background_deep']))    
+    
+    df['prcs_class'] = np.select(
+        [df['fg'], df['bg_map'], df['bg_deep']],  # bool cols as cond
+        ['foreground', 'background_map', 'background_deep'])  # label vals
+    df = df.drop(columns=['fg','bg_map','bg_deep'])
+    return df
+
+
 if __name__ == "__main__":  # revert to "==" later
-
-
     ## convert tuples to dfs
     # drop flow rows (513, 514) b/c irregular formatting & lack of info
     # flows_exclude = ['Baseline scenario','Alternative scenario']  # rows (513, 514)
@@ -146,6 +167,8 @@ if __name__ == "__main__":  # revert to "==" later
 
     df_prcs = unpack_olca_tuple_to_df(processes)  # plenty of columns to expand here too
     df_exch = unpack_exchanges(df_prcs)
+    
+    temp = classify_prcs(df_prcs)
 
     if get_params: df_param = unpack_olca_tuple_to_df(parameters)
 
@@ -154,7 +177,7 @@ if __name__ == "__main__":  # revert to "==" later
     unpack_test = unpack_olca_tuple_to_df(df_prcs.process_type)
 
 
-if False:  # include in script execution?
+if False:  # set True for script development
 
     dir(olca_obj)
     vars(olca_obj)
@@ -194,3 +217,6 @@ if False:  # include in script execution?
     d = df_flow.join(a, how='outer')  # unit test: len() same before/after
     e = d.eq(c)
     f = d.fillna(0).eq(c.fillna(0))
+    
+    # start_time = time.time()
+    # print("--- %s seconds ---" % (time.time() - start_time))
