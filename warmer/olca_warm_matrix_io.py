@@ -4,18 +4,19 @@
 Import WARM OpenLCA model's technology & intervention matrices
 Last Updated: Wednesday, November 11, 2021
 """
-from pathlib import Path
 import pandas as pd
 import numpy as np
+from olca_data_unpack import classify_prcs
+from pathlib import Path
 
+modulepath = Path(__file__).parent
 
 def olca_mtx_read(filename):
     """
     Import baseline & alternative intervention matrices
     """
-    data_path = Path('data','olca',filename).absolute()
-    df = pd.read_csv(data_path, header=None)
-    df.columns = df.columns.astype(str)  # defaults to int when header=None
+    df = pd.read_csv(modulepath/'data'/'warm_olca_mtx'/filename, header=None)
+    # df.columns = df.columns.astype(str)  # defaults to int when header=None
     return df
 
 def olca_tech_clean(df):
@@ -95,11 +96,21 @@ def post_melt_parse(df, fromto):
     return df
 
 if __name__ == '__main__':
-    tech_raw = olca_mtx_read('technology_matrix.csv')
-    intv_raw = olca_mtx_read('intervention_matrix.csv')
+    tech_raw = olca_mtx_read('A.csv')
+    intv_raw = olca_mtx_read('B.csv')
     
-    tech = olca_tech_clean(tech_raw)
-    intv = olca_intv_clean(intv_raw)
+    a_index = pd.read_csv(modulepath/'data'/'warm_olca_mtx'/'index_A.csv')
+    a_index = classify_prcs(a_index)
+    a_index['MappingRequired'] = np.where(a_index.prcs_class=='background_map',
+                                          True, False)
+    newcols = ['MatchCondition','ConversionFactor',
+               'TargetListName','TargetProcessName','TargetUnit','LastUpdated']
+    a_index = a_index.reindex(columns = a_index.columns.tolist() + newcols)
+    a_index.to_csv(modulepath/'processmapping'/'processmpaping.csv', index=False)
+
+    
+    # tech = olca_tech_clean(tech_raw)
+    # intv = olca_intv_clean(intv_raw)
     
     # # comparing old & new (comprehensive) flow matrices
     # tech_raw_old = olca_mtx_read('technology_matrix_old.csv')

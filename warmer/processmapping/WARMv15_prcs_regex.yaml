@@ -1,5 +1,9 @@
 foreground:
-    - MSW (recycling|combustion|composting|landfilling|source reduction).*
+    - MSW recycling.*
+    - MSW combustion.*
+    - MSW composting.*
+    - MSW landfilling.*
+    - MSW source reduction.*
     - Anaerobic digestion.*
 
 background_map:
@@ -16,9 +20,11 @@ background_map:
     - Transport of MSW, by truck
 
 background_deep:
-    - (Baseline|Alternative) scenario
-    - .*, (baseline|alternative) scenario
     - Process energy.*
     - Transport.*         # evaluated sequentially, after patterns in background_map, to avoid multiple match conflict
     - Distillate oil.*    # evaluated sequentially, after patterns in background_map, to avoid multiple match conflict
     - Residual oil.*
+    - .*, baseline scenario
+    - .*, alternative scenario
+    - Baseline scenario
+    - Alternative scenario

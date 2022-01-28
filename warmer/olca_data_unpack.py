@@ -12,42 +12,6 @@ from pathlib import Path
 modulepath = Path(__file__).parent
 datapath = modulepath/'data'
 
-get_data = False
-get_params = False
-
-if get_data:  # get olca data
-    # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
-    client = olca.Client(8080)
-
-    # print(vars(olca.schema))  # view all exportable data
-    # from WARMv15 db: 799 flows, 2140 processes, 69635 parameters
-
-    # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
-    # f = client.get('Flow', 'Carbon dioxide')
-    # temp = tuple(client.get_all(olca.ProductSystem))
-    
-    flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
-    pickle.dump(flows, open(datapath/'olca'/'flows.pickle', 'wb'))
-
-    processes = tuple(client.get_all(olca.Process))
-    pickle.dump(processes, open(datapath/'olca'/'processes.pickle', 'wb'))
-
-    if get_params: # takes 16min+ to get these
-        parameters = tuple(client.get_all(olca.Parameter))
-        pickle.dump(parameters, open(datapath/'olca'/'parameters.pickle', 'wb'))
-
-
-if not get_data:  # retrieve from pickle
-    # flows = pickle.load(open("flows.pickle", "rb"))
-    processes = pickle.load(open(datapath/'olca'/'processes.pickle', 'rb'))
-    # parameters = pickle.load(open("parameters.pickle", "rb"))
-
-# for WARM db, olca.X classes that have a get_all() method...
-    # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
-        # FlowPropertyFactor, FlowPropertyType, FlowType, ProcessLink
-    # can retrieve: Category, FlowProperty, ModelType, ProductSystem, UnitGroup
-
-
 ## flatten nested olca data classes
 def unpack_olca_tuple_to_df(iterable, cols = ['all']):
     """
@@ -140,12 +104,14 @@ def classify_prcs(df):
     """
     Classify WARM db processes as foreground, background_map, or background_deep
     :param df: pandas dataframe of olca processes
-    """
+    """   
     with open(modulepath/'processmapping'/'WARMv15_prcs_regex.yaml', 'r') as f:
         rgx = yaml.safe_load(f)
-    # with open(modulepath/'processmapping'/'WARMv15_regex_prcs.yaml', 'r') as f:
-    #     rgx_prcs = yaml.safe_load(f)
-                
+    
+    a_index = 'process name' in df.columns
+    if a_index:  # adapt A_index.csv header to olca.processes
+        df['name'] = df['process name']   
+        
     df['fg'] = df['name'].str.contains('|'.join(rgx['foreground']))    
     df['bg_map'] = df['name'].str.contains('|'.join(rgx['background_map']))    
     df['bg_deep'] = df['name'].str.contains('|'.join(rgx['background_deep']))    
@@ -153,11 +119,48 @@ def classify_prcs(df):
     df['prcs_class'] = np.select(
         [df['fg'], df['bg_map'], df['bg_deep']],  # bool cols as cond
         ['foreground', 'background_map', 'background_deep'])  # label vals
+    
     df = df.drop(columns=['fg','bg_map','bg_deep'])
+    if a_index: df = df.drop(columns='name')
     return df
 
 
 if __name__ == "__main__":  # revert to "==" later
+    get_data = False
+    get_params = False
+    
+    if get_data:  # get olca data
+        # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
+        client = olca.Client(8080)
+    
+        # print(vars(olca.schema))  # view all exportable data
+        # from WARMv15 db: 799 flows, 2140 processes, 69635 parameters
+    
+        # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
+        # f = client.get('Flow', 'Carbon dioxide')
+        # temp = tuple(client.get_all(olca.ProductSystem))
+        
+        flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
+        pickle.dump(flows, open(datapath/'olca'/'flows.pickle', 'wb'))
+    
+        processes = tuple(client.get_all(olca.Process))
+        pickle.dump(processes, open(datapath/'olca'/'processes.pickle', 'wb'))
+    
+        if get_params: # takes 16min+ to get these
+            parameters = tuple(client.get_all(olca.Parameter))
+            pickle.dump(parameters, open(datapath/'olca'/'parameters.pickle', 'wb'))
+    
+    
+    if not get_data:  # retrieve from pickle
+        # flows = pickle.load(open("flows.pickle", "rb"))
+        processes = pickle.load(open(datapath/'olca'/'processes.pickle', 'rb'))
+        # parameters = pickle.load(open("parameters.pickle", "rb"))
+    
+    # for WARM db, olca.X classes that have a get_all() method...
+        # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
+            # FlowPropertyFactor, FlowPropertyType, FlowType, ProcessLink
+        # can retrieve: Category, FlowProperty, ModelType, ProductSystem, UnitGroup
+
     ## convert tuples to dfs
     # drop flow rows (513, 514) b/c irregular formatting & lack of info
     # flows_exclude = ['Baseline scenario','Alternative scenario']  # rows (513, 514)
@@ -168,7 +171,7 @@ if __name__ == "__main__":  # revert to "==" later
     df_prcs = unpack_olca_tuple_to_df(processes)  # plenty of columns to expand here too
     df_exch = unpack_exchanges(df_prcs)
     
-    temp = classify_prcs(df_prcs)
+    df_prcs_class = classify_prcs(df_prcs)
 
     if get_params: df_param = unpack_olca_tuple_to_df(parameters)
 
