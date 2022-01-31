@@ -106,7 +106,7 @@ if __name__ == '__main__':
     newcols = ['MatchCondition','ConversionFactor',
                'TargetListName','TargetProcessName','TargetUnit','LastUpdated']
     a_index = a_index.reindex(columns = a_index.columns.tolist() + newcols)
-    a_index.to_csv(modulepath/'processmapping'/'processmpaping.csv', index=False)
+    a_index.to_csv(modulepath/'processmapping'/'processmapping.csv', index=False)
 
     
     # tech = olca_tech_clean(tech_raw)
