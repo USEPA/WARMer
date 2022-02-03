@@ -141,20 +141,20 @@ if __name__ == "__main__":  # revert to "==" later
         # temp = tuple(client.get_all(olca.ProductSystem))
         
         flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
-        pickle.dump(flows, open(datapath/'olca'/'flows.pickle', 'wb'))
+        pickle.dump(flows, open(datapath/'flows.pickle', 'wb'))
     
         processes = tuple(client.get_all(olca.Process))
-        pickle.dump(processes, open(datapath/'olca'/'processes.pickle', 'wb'))
+        pickle.dump(processes, open(datapath/'processes.pickle', 'wb'))
     
         if get_params: # takes 16min+ to get these
             parameters = tuple(client.get_all(olca.Parameter))
-            pickle.dump(parameters, open(datapath/'olca'/'parameters.pickle', 'wb'))
+            pickle.dump(parameters, open(datapath/'parameters.pickle', 'wb'))
     
     
     if not get_data:  # retrieve from pickle
-        # flows = pickle.load(open("flows.pickle", "rb"))
-        processes = pickle.load(open(datapath/'olca'/'processes.pickle', 'rb'))
-        # parameters = pickle.load(open("parameters.pickle", "rb"))
+        # flows = pickle.load(open(datapath/'flows.pickle', 'rb'))
+        processes = pickle.load(open(datapath/'processes.pickle', 'rb'))
+        # parameters = pickle.load(open(datapath/'parameters.pickle', 'rb'))
     
     # for WARM db, olca.X classes that have a get_all() method...
         # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
