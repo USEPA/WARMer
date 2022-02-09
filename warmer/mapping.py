@@ -9,11 +9,12 @@ from esupy.mapping import apply_flow_mapping
 def map_warmer_envflows(df):
 
     # Align warmer fields with mapping
-    field_dict = {'FlowableName':'Flow',
-                  'FlowableUnit':'Unit',
-                  'FlowableContext':'Context',
+    field_dict = {'SourceName': '',
+                  'FlowableName':'to_flow_name',
+                  'FlowableUnit':'to_flow_unit',
+                  'FlowableContext':'to_flow_category',
                   'FlowableQuantity':'Amount',
-                  'UUID':'FlowUUID'}
+                  'UUID':'to_flow_ID'}
 
     df = apply_flow_mapping(df, 'WARM', flow_type='ELEMENTARY_FLOW',
                             keep_unmapped_rows=True, field_dict = field_dict,
