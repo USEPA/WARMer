@@ -36,7 +36,7 @@ def map_useeio_processes(df):
     df = df.merge(mapping[mapping_cols],
                   how='left', left_on = ['from_process_ID'],
                   right_on = ['process ID'])
-    criteria = (df['from_prcs_class'] == 'background_map') & \
+    criteria = (df['from_process_class'] == 'background_map') & \
                (df['TargetProcessName'].notnull())
     print(f'mapping {sum(criteria)} processes')
     df.loc[criteria, 'from_process_name'] = df['TargetProcessName']

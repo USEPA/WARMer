@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import uuid
 from olca_data_unpack import classify_processes
-from mapping import map_warmer_envflows
+from mapping import map_warmer_envflows, map_useeio_processes
 from pathlib import Path
 
 modulepath = Path(__file__).parent
@@ -93,7 +93,7 @@ def label_exch_dfs(df_a, df_b, idx_a, idx_b):
                          how='left', on='to_process_ID'))
     if inspect_df_merge(df_a, df_a_m) == False:
         print('WARNING inspect labeled df_a for merge errors')
-        
+
     df_b_m = (df_b.merge(idx_a.add_prefix('from_'),
                          how='left', on='from_process_ID')
                   .merge(idx_b.add_prefix('to_'),
@@ -135,9 +135,20 @@ def filter_processes(df_a, df_b, filterfile=None):
     """
     df_a_f = df_a.query('to_process_fgbg == "foreground"')
     if filterfile is not None:  # must check & perform before df_b filtering
-        subset_keep = open(modulepath/'data'/filterfile).read().splitlines()
-        df_a_f = df_a_f.query('to_process_name in @subset_keep')
-    df_b_f = df_b.query('from_process_ID in @df_a_f.to_process_ID')
+        subset_keep = pd.read_csv(modulepath/'data'/filterfile, header=None)
+        df_a_f = df_a_f.merge(subset_keep, how='inner',
+                              left_on = 'to_process_name',
+                              right_on = 1)
+        df_a_f.loc[:, 'to_process_ID'] = df_a_f[0]
+        df_a_f.drop(columns = [0,1], inplace=True)
+
+        df_b_f = df_b.merge(subset_keep, how='inner',
+                            left_on = 'from_process_name',
+                            right_on = 1)
+        df_b_f.loc[:, 'from_process_ID'] = df_b_f[0]
+        df_b_f.drop(columns = [0,1], inplace=True)
+    else:
+        df_b_f = df_b.query('from_process_ID in @df_a_f.to_process_ID')
     return df_a_f, df_b_f
 
 def map_agg(df_b, idx_b):
@@ -148,7 +159,7 @@ def map_agg(df_b, idx_b):
     :param idx_b: pd dataframe, labels for B-matrix rows
     """
     df = map_warmer_envflows(df_b)
-    
+
     # derive new flow_ID_agg from FEDEFL-mapped (name + category)
     df['ID_str'] = df['to_flow_name'] + '_' + df['to_flow_category'].fillna('')
     df['to_flow_ID_agg'] = df['ID_str'].apply(
@@ -158,10 +169,10 @@ def map_agg(df_b, idx_b):
     mask = df.columns.intersection('to_' + idx_b.columns).tolist()
     idx = df[mask + ['to_flow_ID_agg']].drop_duplicates()
     idx.columns = idx.columns.str.replace('to_','')
-    
+
     # aggregate df_b flows
     aggcols = df.columns.tolist()
-    aggcols.remove('Amount')  # aggcols = [col for col in aggcols if col not in ['Amount','to_flow_ID']]    
+    aggcols.remove('Amount')  # aggcols = [col for col in aggcols if col not in ['Amount','to_flow_ID']]
     df = df.groupby(aggcols, as_index=False, dropna=False, observed=True).sum()
     return df, idx
 
@@ -174,7 +185,7 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     :param idx_b: pd dataframe, labels for B-matrix rows
     """
     idx_a, idx_b = sort_idcs(idx_a, idx_b)
-    
+
     mtx_a = (df_a.loc[:,['from_process_ID','to_process_ID','Amount']]
                  .pivot(index='from_process_ID', columns='to_process_ID',
                         values='Amount')
@@ -185,7 +196,7 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     mtx_a = (mtx_a.reindex(index=idx_a.index.intersection(mtx_a.index))
                   .transpose()
                   .rename_axis('process_ID')  # formerly from_process_ID
-                  .reset_index())  
+                  .reset_index())
     mtx_a_i = (idx_a.merge(mtx_a, how='right', on='process_ID')
                     .transpose()
                     .rename_axis('process_ID')  # formerly to_process_ID
@@ -197,7 +208,7 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     mtx_a_i.iloc[0:a,0] = np.nan
     mtx_a_i.iloc[a-1,0:a] = mtx_a_i.columns[0:a]
     mtx_a_lab = mtx_a_i.transpose()
-    
+
     mtx_b = (df_b.loc[:,['from_process_ID','to_flow_ID_agg','Amount']]
                   .pivot(index='from_process_ID', columns='to_flow_ID_agg',
                         values='Amount')
@@ -218,7 +229,7 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     mtx_b_lab.iloc[0:a-1,0] = np.nan
     mtx_b_lab.iloc[a-1,0:b] = mtx_b_lab.columns[0:b]
     return mtx_a_lab, mtx_b_lab
-    
+
 def sort_idcs(idx_a, idx_b):
     """
     Sort idx_a and idx_b columns, plus idx_a rows to prep for matrix labeling.
@@ -228,7 +239,7 @@ def sort_idcs(idx_a, idx_b):
     """
     # column sorting
     idx_a, idx_b = map(sort_idx_cols, [idx_a, idx_b])
-    
+
     # row sorting
     idx_a = idx_a.sort_values(by=['process_class','process_name'])
     idx_a['process_class'] = idx_a['process_class'].astype(str)
@@ -245,7 +256,7 @@ def sort_idx_cols(df_idx):
     cols = df_idx.columns
     p = cols[cols.str.startswith('process')].str.replace('process_','')
     f = cols[cols.str.startswith('flow')].str.replace('flow_','')
-    order_cols = pd.Index(['ID', 'ID_agg', 'category', 'class', 'fgbg', 
+    order_cols = pd.Index(['ID', 'ID_agg', 'category', 'class', 'fgbg',
                            'location', 'type', 'name', 'unit'])
     p_o = ('process_' + order_cols.intersection(p)).tolist()
     f_o = ('flow_' + order_cols.intersection(f)).tolist()
@@ -270,24 +281,25 @@ if __name__ == '__main__':
 
     df_a, df_b = filter_processes(df_a, df_b)
     ## Notes:
-    # 1. Some 145 processes in A-mtx are technosphere mixing processes, 
+    # 1. Some 145 processes in A-mtx are technosphere mixing processes,
         # with all 0-valued elementary flows and no entries in df_b
-    # 2. Of the 14 elementary flows in idx_b, only 11 remain after 
+    # 2. Of the 14 elementary flows in idx_b, only 11 remain after
         # removing 0-value exchanges. Removed flows include:
             # Ethane, hexafluoro-, HFC-116
             # Methane, tetrafluoro-, R-14
             # Other means of transport (no truck, train or s...
-                
+
     df_b, idx_b = map_agg(df_b, idx_b)
-    
+
     mtx_a_lab, mtx_b_lab = pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b)
 
+    df_a = map_useeio_processes(df_a)
 
-    ## Sample matrix generation (via .txt filter list)
-    # df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'sample_processes.txt')
-    # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
-    # a_eg.to_csv(modulepath/'data'/'eg_a_mtx.csv', index=False, header=False)
-    # b_eg.to_csv(modulepath/'data'/'eg_b_mtx.csv', index=False, header=False)
+    ## Sample dataframe export (via .txt filter list)
+    df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'sample_processes.csv')
+    a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
+    df_a_eg.to_csv(modulepath/'data'/'eg_a_df.csv', index=False, header=False)
+    df_b_eg.to_csv(modulepath/'data'/'eg_b_df.csv', index=False, header=False)
 
     ## Generate processmapping.csv
     # newcols = ['MatchCondition','ConversionFactor',
