@@ -1,6 +1,6 @@
 ## SQL queries for data access in openLCA
 
-### Generate a table of processes with reference flows, saved as `process_map.csv`
+### Generate a table of processes with reference flows, saved as `reference_flows.csv`
 ```
 select
 processes.name as ProcessName,
