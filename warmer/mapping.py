@@ -42,5 +42,5 @@ def map_useeio_processes(df):
     df.loc[criteria, 'from_process_name'] = df['TargetProcessName']
     df.loc[criteria, 'from_flow_unit'] = df['TargetUnit']
     df.loc[criteria, 'Amount'] = df['Amount'] * df['ConversionFactor']
-    df.drop(columns=[mapping_cols])
+    df.drop(columns=mapping_cols, inplace=True)
     return df
