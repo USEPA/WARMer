@@ -136,7 +136,7 @@ def filter_processes(df_a, df_b, filterfile=None):
     df_a_f = df_a.query('to_process_fgbg == "foreground"')
     if filterfile is not None:  # must check & perform before df_b filtering
         subset_keep = pd.read_csv(modulepath/'data'/filterfile, header=None)
-        df_a_f = df_a_f.merge(subset_keep, how='inner',
+        df_a_f = df_a_f.merge(subset_keep, how='right',
                               left_on = 'to_process_name',
                               right_on = 1)
         df_a_f.loc[:, 'to_process_ID'] = df_a_f[0]
@@ -263,6 +263,29 @@ def sort_idx_cols(df_idx):
     df_idx = df_idx[p_o + f_o]
     return df_idx
 
+
+def format_for_export(df, opt):
+    if opt == 'a':
+        col_dict = {'to_process_id': 'ProcessID',
+                    'to_process_name': 'ProcessName',
+                    'to_process_unit': 'ProcessUnit',
+                    'to_process_location': 'Location',
+                    'Amount': 'Amount',
+                    'from_process_ID': 'FlowID',
+                    'from_process_name': 'Flow',
+                    'from_process_unit': 'FlowUnit',
+                    }
+    else: # opt == 'b'
+        col_dict = {'to_process_id': 'ProcessID',
+                    'to_process_name': 'ProcessName',
+                    'to_process_unit': 'ProcessUnit',
+                    'to_process_location': 'Location',
+                    'Amount': 'Amount',
+                    'from_process_ID': 'FlowID',
+                    'from_process_name': 'Flow',
+                    'from_process_unit': 'FlowUnit',
+                    }
+    return df
 
 if __name__ == '__main__':
     a_raw, b_raw, idx_a, idx_b = map(
