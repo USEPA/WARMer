@@ -1,0 +1,29 @@
+waste treatment pathway:
+    - MSW recycling.*
+    - MSW combustion.*
+    - MSW composting.*
+    - MSW landfilling.*
+    - Anaerobic digestion.*
+
+special:
+    - MSW source reduction.*
+    - Electricity generation, at grid.*
+    - Product manufacturing, from.*
+    - Timber harvesting.*
+    - Wood chipping
+    - Compost piles turning, operation with diesel
+    - Steel recycling.*
+    - Landfill operation, diesel
+    - Electronics shredding for recycling
+
+supporting service:
+    - Process energy.*
+    - Transport.*        
+    - Distillate oil.*
+    - Residual oil.*
+
+scenario process:
+    - .*, baseline scenario
+    - .*, alternative scenario
+    - Baseline scenario
+    - Alternative scenario
