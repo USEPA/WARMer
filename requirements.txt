@@ -1,2 +1,4 @@
+git+https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List.git@warm#egg=fedelemflowlist
+olca-ipc==0.0.10    # latest version 0.0.11 incompatible w/ FEDEFL
 pandas>=1.3
 numpy>=1.21

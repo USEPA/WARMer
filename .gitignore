@@ -1,4 +1,4 @@
-*.pyc
+__pychache__/
 *.zip
 .idea/
 *.pickle
