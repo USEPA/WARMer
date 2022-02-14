@@ -160,7 +160,7 @@ def filter_processes(df_a, df_b, filterfile=None):
 
 def map_agg(df_b, idx_b):
     """
-    Map elementary flows to FEDEFL format, derive a new idx_b w/ temporary IDs, 
+    Map elementary flows to FEDEFL format, derive a new idx_b w/ temporary IDs,
     and aggregate flows in df_b with newly-overlapping categorical variables
     :param df_b: pd dataframe, B-matrix exchanges w/ all labels
     :param idx_b: pd dataframe, labels for B-matrix rows
@@ -336,7 +336,7 @@ if __name__ == '__main__':
 
     ## Sample dataframe export (via .txt filter list)
     df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'sample_processes.csv')
-    a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
+    # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
     format_for_export(df_a_eg, 'a')
     format_for_export(df_b_eg, 'b')
     # df_a_eg.to_csv(modulepath/'data'/'eg_a_df.csv', index=False, header=False)
