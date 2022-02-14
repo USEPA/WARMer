@@ -142,6 +142,13 @@ def filter_processes(df_a, df_b, filterfile=None):
         df_a_f.loc[:, 'to_process_ID'] = df_a_f[0]
         df_a_f.drop(columns = [0,1], inplace=True)
 
+        # Update IDs for consumed flows as well
+        df_a_f = df_a_f.merge(subset_keep, how = 'left',
+                              left_on = 'from_process_name',
+                              right_on = 1)
+        df_a_f.loc[~df_a_f[0].isna(), 'from_process_ID'] = df_a_f[0]
+        df_a_f.drop(columns = [0,1], inplace=True)
+
         df_b_f = df_b.merge(subset_keep, how='inner',
                             left_on = 'from_process_name',
                             right_on = 1)
@@ -266,26 +273,32 @@ def sort_idx_cols(df_idx):
 
 def format_for_export(df, opt):
     if opt == 'a':
-        col_dict = {'to_process_id': 'ProcessID',
+        col_dict = {'to_process_ID': 'ProcessID',
                     'to_process_name': 'ProcessName',
-                    'to_process_unit': 'ProcessUnit',
+                    'to_flow_unit': 'ProcessUnit',
                     'to_process_location': 'Location',
                     'Amount': 'Amount',
                     'from_process_ID': 'FlowID',
                     'from_process_name': 'Flow',
-                    'from_process_unit': 'FlowUnit',
+                    'from_flow_unit': 'FlowUnit',
                     }
     else: # opt == 'b'
-        col_dict = {'to_process_id': 'ProcessID',
-                    'to_process_name': 'ProcessName',
-                    'to_process_unit': 'ProcessUnit',
-                    'to_process_location': 'Location',
+        col_dict = {'from_process_ID': 'ProcessID',
+                    'from_process_name': 'ProcessName',
+                    'from_process_location': 'Location',
                     'Amount': 'Amount',
-                    'from_process_ID': 'FlowID',
-                    'from_process_name': 'Flow',
-                    'from_process_unit': 'FlowUnit',
+                    'to_flow_name': 'Flowable',
+                    'to_flow_category': 'Context',
+                    'to_flow_unit': 'Unit',
+                    'FlowUUID': 'FlowUUID',
                     }
-    return df
+
+    df_mapped = df[list(col_dict.keys())]
+    df_mapped = df_mapped.rename(columns=col_dict)
+    df_mapped.dropna(subset=['Amount'], inplace=True)
+    df_mapped.to_csv(modulepath/'data'/f'{opt}_df.csv', index=False)
+
+    return
 
 if __name__ == '__main__':
     a_raw, b_raw, idx_a, idx_b = map(
@@ -321,8 +334,10 @@ if __name__ == '__main__':
     ## Sample dataframe export (via .txt filter list)
     df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'sample_processes.csv')
     a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
-    df_a_eg.to_csv(modulepath/'data'/'eg_a_df.csv', index=False, header=False)
-    df_b_eg.to_csv(modulepath/'data'/'eg_b_df.csv', index=False, header=False)
+    format_for_export(df_a_eg, 'a')
+    format_for_export(df_b_eg, 'b')
+    # df_a_eg.to_csv(modulepath/'data'/'eg_a_df.csv', index=False, header=False)
+    # df_b_eg.to_csv(modulepath/'data'/'eg_b_df.csv', index=False, header=False)
 
     ## Generate processmapping.csv
     # newcols = ['MatchCondition','ConversionFactor',
