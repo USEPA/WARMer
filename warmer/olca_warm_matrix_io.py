@@ -160,21 +160,21 @@ def filter_processes(df_a, df_b, filterfile=None):
 
 def map_agg(df_b, idx_b):
     """
-    Map elementary flows to FEDEFL format, derive a new idx_b, and aggregate
-    flows in df_b with newly-overlapping categorical variables
+    Map elementary flows to FEDEFL format, derive a new idx_b w/ temporary IDs, 
+    and aggregate flows in df_b with newly-overlapping categorical variables
     :param df_b: pd dataframe, B-matrix exchanges w/ all labels
     :param idx_b: pd dataframe, labels for B-matrix rows
     """
     df = map_warmer_envflows(df_b)
 
-    # derive new flow_ID_agg from FEDEFL-mapped (name + category)
+    # derive new flow_ID_temp from FEDEFL-mapped (name + category)
     df['ID_str'] = df['to_flow_name'] + '_' + df['to_flow_category'].fillna('')
-    df['to_flow_ID_agg'] = df['ID_str'].apply(
+    df['to_flow_ID_temp'] = df['ID_str'].apply(
         lambda x: str(uuid.uuid3(uuid.NAMESPACE_OID, x)))
     df = df.drop(columns=['to_flow_ID', 'ID_str'])
     # extract new idx_b df from mapped df_b
     mask = df.columns.intersection('to_' + idx_b.columns).tolist()
-    idx = df[mask + ['to_flow_ID_agg']].drop_duplicates()
+    idx = df[['to_flow_ID_temp'] + ['FlowUUID'] + mask].drop_duplicates()
     idx.columns = idx.columns.str.replace('to_','')
 
     # aggregate df_b flows
@@ -216,8 +216,8 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     mtx_a_i.iloc[a-1,0:a] = mtx_a_i.columns[0:a]
     mtx_a_lab = mtx_a_i.transpose()
 
-    mtx_b = (df_b.loc[:,['from_process_ID','to_flow_ID_agg','Amount']]
-                  .pivot(index='from_process_ID', columns='to_flow_ID_agg',
+    mtx_b = (df_b.loc[:,['from_process_ID','to_flow_ID_temp','Amount']]
+                  .pivot(index='from_process_ID', columns='to_flow_ID_temp',
                         values='Amount')
                   .fillna(0))      # reinstate filtered out 0-flows
     # reorder mtx_b from_process_ID's by sorted idx_a process_ID
@@ -227,14 +227,15 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     mtx_b_i = (idx_a.drop(columns='process_fgbg')
                     .merge(mtx_b, how='right', on='process_ID')
                     .transpose()
-                    .rename_axis('flow_ID_agg')  # formerly to_flow_ID_agg
+                    .rename_axis('flow_ID_temp')  # formerly to_flow_ID_temp
                     .reset_index())
-    mtx_b_lab = (idx_b.merge(mtx_b_i, how='right', on='flow_ID_agg'))
+    mtx_b_lab = (idx_b.merge(mtx_b_i, how='right', on='flow_ID_temp'))
     # manual field name label position adjustments
     b = len(idx_b.columns)
-    mtx_b_lab.iloc[0:a-1,b-1] = mtx_b_lab.iloc[0:a-1,0]
-    mtx_b_lab.iloc[0:a-1,0] = np.nan
+    mtx_b_lab.iloc[0:a-1,b-1] = mtx_b_lab.iloc[0:a-1,1]
+    mtx_b_lab.iloc[0:a-1,1] = np.nan
     mtx_b_lab.iloc[a-1,0:b] = mtx_b_lab.columns[0:b]
+    mtx_b_lab = mtx_b_lab.drop(columns='flow_ID_temp')
     return mtx_a_lab, mtx_b_lab
 
 def sort_idcs(idx_a, idx_b):
@@ -263,9 +264,11 @@ def sort_idx_cols(df_idx):
     cols = df_idx.columns
     p = cols[cols.str.startswith('process')].str.replace('process_','')
     f = cols[cols.str.startswith('flow')].str.replace('flow_','')
-    order_cols = pd.Index(['ID', 'ID_agg', 'category', 'class', 'fgbg',
+    order_cols = pd.Index(['ID', 'ID_temp', 'category', 'class', 'fgbg',
                            'location', 'type', 'name', 'unit'])
     p_o = ('process_' + order_cols.intersection(p)).tolist()
+    if 'FlowUUID' in cols:
+        p_o = ['FlowUUID'] + p_o
     f_o = ('flow_' + order_cols.intersection(f)).tolist()
     df_idx = df_idx[p_o + f_o]
     return df_idx
