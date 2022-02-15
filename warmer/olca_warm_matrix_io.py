@@ -285,6 +285,8 @@ def format_for_export(df, opt):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
+        df.loc[(df['to_process_ID'] == df['from_process_ID']) &
+               (df['Amount']==1), 'Amount'] = 0
     else: # opt == 'b'
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
@@ -295,6 +297,7 @@ def format_for_export(df, opt):
                     'to_flow_unit': 'Unit',
                     'FlowUUID': 'FlowUUID',
                     }
+
 
     df_mapped = df[list(col_dict.keys())]
     df_mapped = df_mapped.rename(columns=col_dict)
