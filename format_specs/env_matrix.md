@@ -8,7 +8,7 @@ To build the `B` matrix, the environmental data frame requires the following fie
 
  Field | Type | Required |  Note |
 ----------- |  ---- | ---------| -----  |
-ProcessID | str | Y | ProcessID of the consuming process
+ProcessID | str | Y | ProcessID of the source process
 ProcessName | str | N |
 Location | str | Y | two-digit code, e.g., `US`
 Amount | float | Y | Per unit of reference flow
