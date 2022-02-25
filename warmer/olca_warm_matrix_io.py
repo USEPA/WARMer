@@ -284,6 +284,7 @@ def format_for_export(df, opt):
                     'from_process_ID': 'FlowID',
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
+                    # 'from_process_fgbg': 'FlowMap'  # use when fbgb is needed
                     }
         df.loc[(df['to_process_ID'] == df['from_process_ID']) &
                (df['Amount']==1), 'Amount'] = 0
@@ -335,10 +336,10 @@ if __name__ == '__main__':
 
     mtx_a_lab, mtx_b_lab = pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b)
 
-    df_a = map_useeio_processes(df_a)
+    # df_a = map_useeio_processes(df_a)
 
     ## Sample dataframe export (via .txt filter list)
-    df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'sample_processes.csv')
+    df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'choose_processes.csv')
     # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
     format_for_export(df_a_eg, 'a')
     format_for_export(df_b_eg, 'b')
