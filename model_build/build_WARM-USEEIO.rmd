@@ -1,0 +1,18 @@
+---
+title: "build_WARM-USEEIO"
+output: html_document
+---
+
+```{r}
+#devtools::install_github("USEPA/useeior@hybridization")
+#library('useeior')
+
+configpaths <- file.path(c("USEEIO-WARM.yml",
+                           "WARMv15.yml"))
+
+modelname <- "USEEIO-WARM"
+model <- buildModel(modelname, configpaths)
+
+
+```
+
