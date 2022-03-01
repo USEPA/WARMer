@@ -12,6 +12,7 @@ from mapping import map_warmer_envflows, map_useeio_processes
 from pathlib import Path
 
 modulepath = Path(__file__).parent
+warm_version = 'WARMv15'
 
 def read_olca2(filename):
     """
@@ -154,6 +155,7 @@ def filter_processes(df_a, df_b, filterfile=None):
                             right_on = 1)
         df_b_f.loc[:, 'from_process_ID'] = df_b_f[0]
         df_b_f.drop(columns = [0,1], inplace=True)
+        df_b_f.sort_values(by='from_process_ID', inplace=True)
     else:
         df_b_f = df_b.query('from_process_ID in @df_a_f.to_process_ID')
     return df_a_f, df_b_f
@@ -276,6 +278,7 @@ def sort_idx_cols(df_idx):
 
 def format_for_export(df, opt):
     if opt == 'a':
+        filename = f'{warm_version}_tech'
         col_dict = {'to_process_ID': 'ProcessID',
                     'to_process_name': 'ProcessName',
                     'to_flow_unit': 'ProcessUnit',
@@ -289,6 +292,7 @@ def format_for_export(df, opt):
         df.loc[(df['to_process_ID'] == df['from_process_ID']) &
                (df['Amount']==1), 'Amount'] = 0
     else: # opt == 'b'
+        filename = f'{warm_version}_env'
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
                     'from_process_location': 'Location',
@@ -299,11 +303,10 @@ def format_for_export(df, opt):
                     'FlowUUID': 'FlowUUID',
                     }
 
-
     df_mapped = df[list(col_dict.keys())]
     df_mapped = df_mapped.rename(columns=col_dict)
     df_mapped.dropna(subset=['Amount'], inplace=True)
-    df_mapped.to_csv(modulepath/'data'/f'{opt}_df.csv', index=False)
+    df_mapped.to_csv(modulepath.parent/'model_build'/f'{filename}.csv', index=False)
 
     return
 
@@ -336,7 +339,7 @@ if __name__ == '__main__':
 
     mtx_a_lab, mtx_b_lab = pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b)
 
-    # df_a = map_useeio_processes(df_a)
+    df_a = map_useeio_processes(df_a)
 
     ## Sample dataframe export (via .txt filter list)
     df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'choose_processes.csv')
