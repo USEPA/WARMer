@@ -142,7 +142,40 @@ Indicators:
         DataYear: NA
         URL: "https://www.epa.gov/chemical-research/tool-reduction-and-assessment-chemicals-and-other-environmental-impacts-traci"
         Primary: TRUE
-
+  ValueAdded:
+    Name: "Value Added"
+    Code: "VADD"
+    Group: "Economic & Social"
+    Unit: "$"
+    SimpleUnit: "US Dollars ($)"
+    SimpleName: "Value Added"
+    StaticSource: TRUE
+    StaticFile: "USEEIO_LCIA_Factors.csv"
+    FileLocation: "useeior"
+    DataSources:
+      ingwersen_useeiov11_2017:
+        Title: "USEEIOv1.1 - Elementary Flows and Life Cycle Impact Assessment (LCIA) Characterization Factors"
+        Author: "USEPA"
+        DataYear: 2020
+        URL: "http://doi.org/10.23719/1368541"
+        Primary: TRUE
+  Jobs:
+    Name: "Jobs Supported"
+    Code: "JOBS"
+    Group: "Economic & Social"
+    Unit: "jobs"
+    SimpleUnit: "Employees"
+    SimpleName: "Jobs Supported"
+    StaticSource: TRUE
+    StaticFile: "USEEIO_LCIA_Factors.csv"
+    FileLocation: "useeior"
+    DataSources:
+      ingwersen_useeiov11_2017:
+        Title: "USEEIOv1.1 - Elementary Flows and Life Cycle Impact Assessment (LCIA) Characterization Factors"
+        Author: "USEPA"
+        DataYear: 2020
+        URL: "http://doi.org/10.23719/1368541"
+        Primary: TRUE
 
 
 DemandVectors:
