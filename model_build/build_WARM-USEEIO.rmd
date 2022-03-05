@@ -25,8 +25,9 @@ y2 <- formatDemandVector(y2, model$L)
 # Generate results
 results <- calculateEEIOModel(model, perspective = "DIRECT", y)
 results <- append(calculateEEIOModel(model, perspective = "FINAL", y), results)
+
 lcia <- results[["LCIA_f"]]
-lcia <- lcia[rowSums(lcia[])>0,]
+print(lcia[rowSums(lcia[])>0,])
 colSums(results[["LCIA_d"]])
 
 impact_result <- calculateSectorPurchasedbySectorSourcedImpact(y, model, "Greenhouse Gases")
