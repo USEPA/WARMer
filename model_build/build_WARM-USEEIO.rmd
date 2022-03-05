@@ -7,11 +7,29 @@ output: html_document
 #devtools::install_github("USEPA/useeior@hybridization")
 #library('useeior')
 
+# Build model from specs
 configpaths <- file.path(c("USEEIO-WARM.yml",
                            "WARMv15.yml"))
-
 modelname <- "USEEIO-WARM"
 model <- buildModel(modelname, configpaths)
+
+# Source demand vector from csv
+demand_path <- file.path("material_demand.csv")
+y <- extractAndFormatDemandVector(demand_path, 'Demand1', model)
+
+
+# Or create demand vector in code
+y2 <- setNames(c(1, 2), c("WARM07", "WARM08"))
+y2 <- formatDemandVector(y2, model$L)
+
+# Generate results
+results <- calculateEEIOModel(model, perspective = "DIRECT", y)
+results <- append(calculateEEIOModel(model, perspective = "FINAL", y), results)
+lcia <- results[["LCIA_f"]]
+lcia <- lcia[rowSums(lcia[])>0,]
+colSums(results[["LCIA_d"]])
+
+impact_result <- calculateSectorPurchasedbySectorSourcedImpact(y, model, "Greenhouse Gases")
 
 
 ```
