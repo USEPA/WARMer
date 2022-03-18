@@ -4,6 +4,7 @@
 Functions related to mapping flows and processes
 """
 
+import yaml
 from pathlib import Path
 import pandas as pd
 from esupy.mapping import apply_flow_mapping
@@ -45,3 +46,43 @@ def map_useeio_processes(df):
     df.loc[criteria, 'Amount'] = df['Amount'] * df['ConversionFactor']
     df.drop(columns=mapping_cols, inplace=True)
     return df
+
+
+def identify_price_flowsa(sector, fba_dict):
+    """Extract and filter FBA datasets based on passed fba_dict. Divide economic
+    output by total flow to obtain price."""
+    import flowsa
+    df = flowsa.getFlowByActivity(datasource = fba_dict['SourceName'],
+                                  year = fba_dict['Year'])
+
+    for k,v in fba_dict.items():
+        df = df.loc[df[k]==v]
+
+    if len(df) > 1:
+        print('WARNING more than one record available')
+
+    x = df[['FlowAmount','Unit']].groupby(by = 'Unit').sum('FlowAmount').reset_index()
+
+    output = flowsa.getFlowByActivity(datasource = 'BEA_GDP_GrossOutput',
+                                      year = fba_dict['Year'])
+    output = output.loc[output['ActivityProducedBy'] == sector
+                        ].reset_index(drop=True)
+
+    value = output['FlowAmount'][0] / x['FlowAmount'][0]
+    unit = f"USD / {x['Unit'][0]}"
+
+    return {sector: {unit:value}}
+
+
+def generate_prices():
+    """Generate prices for all sectors stored in price_data.yaml"""
+    with open(modulepath/'data'/'price_data.yaml', 'r') as f:
+            method_dict = yaml.safe_load(f)
+    price_dict = {}
+    for sector, fba_dict in method_dict.items():
+        price_dict.update(identify_price_flowsa(str(sector), fba_dict))
+    return price_dict
+
+
+if __name__ == "__main__":
+    d = generate_prices()
