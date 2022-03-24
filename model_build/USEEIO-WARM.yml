@@ -98,7 +98,7 @@ SatelliteTable:
         Author: "BLS"
         DataYear: 2017
         URL: "https://www.bls.gov/cew/"
-        Primary: TRUE  
+        Primary: TRUE
   VADD:
     FullName: "Value Added"
     Abbreviation: "VADD"
@@ -130,10 +130,10 @@ Indicators:
     SimpleUnit: "Kilograms Carbon Dioxide (CO2)"
     SimpleName: "Greenhouse Gases"
     StaticSource: TRUE
-    StaticFile: "lciafmt/traci/TRACI_2.1_v1.0.0_5555779.parquet"
+    StaticFile: "lciafmt/traci/WARM-GHGs_v1.0.3_f082d97.parquet"
     FileLocation: "DataCommons"
     ScriptFunctionCall: "getImpactMethod" #function to call for script
-    ScriptFunctionParameters: 
+    ScriptFunctionParameters:
       indicators: ["Global warming"]
     DataSources:
       USEPA_TRACI_2.1:
