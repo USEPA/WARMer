@@ -291,6 +291,8 @@ def format_for_export(df, opt):
                     }
         df.loc[(df['to_process_ID'] == df['from_process_ID']) &
                (df['Amount']==1), 'Amount'] = 0
+        # Invert all signs in A matrix
+        df['Amount'] = df['Amount'] * -1
     else: # opt == 'b'
         filename = f'{warm_version}_env'
         col_dict = {'from_process_ID': 'ProcessID',
