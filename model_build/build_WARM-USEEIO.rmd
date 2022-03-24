@@ -15,7 +15,7 @@ model <- buildModel(modelname, configpaths)
 
 # Source demand vector from csv
 demand_path <- file.path("material_demand.csv")
-y <- extractAndFormatDemandVector(demand_path, 'Demand1', model)
+y <- extractAndFormatDemandVector(demand_path, 'Grains', model)
 
 
 # Or create demand vector in code
@@ -28,9 +28,13 @@ results <- append(calculateEEIOModel(model, perspective = "FINAL", y), results)
 
 lcia <- results[["LCIA_f"]]
 print(lcia[rowSums(lcia[])>0,])
-colSums(results[["LCIA_d"]])
+
+lci <- results[["LCI_f"]]
+print(lci[rowSums(lci[])>0,])
+
 
 impact_result <- calculateSectorPurchasedbySectorSourcedImpact(y, model, "Greenhouse Gases")
+a <- calculateSectorContributiontoImpact(model, "WARM01", "Greenhouse Gases")
 
 
 ```
