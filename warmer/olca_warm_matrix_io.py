@@ -147,7 +147,7 @@ def filter_processes(df_a, df_b, filterfile=None):
         df_a_f = df_a_f.merge(subset_keep, how = 'left',
                               left_on = 'from_process_name',
                               right_on = 1)
-        df_a_f.loc[~df_a_f[0].isna(), 'from_process_ID'] = df_a_f[0]
+        df_a_f.loc[~df_a_f[0].isna(), 'from_process_ID'] = df_a_f[0] + '/US'
         df_a_f.drop(columns = [0,1], inplace=True)
 
         df_b_f = df_b.merge(subset_keep, how='inner',
@@ -289,7 +289,7 @@ def format_for_export(df, opt):
                     'from_flow_unit': 'FlowUnit',
                     # 'from_process_fgbg': 'FlowMap'  # use when fbgb is needed
                     }
-        df.loc[(df['to_process_ID'] == df['from_process_ID']) &
+        df.loc[(df['to_process_ID'] == df['from_process_ID'].str.split('/').str[0]) &
                (df['Amount']==1), 'Amount'] = 0
         # Invert all signs in A matrix
         df['Amount'] = df['Amount'] * -1
@@ -307,6 +307,7 @@ def format_for_export(df, opt):
 
     df_mapped = df[list(col_dict.keys())]
     df_mapped = df_mapped.rename(columns=col_dict)
+    df_mapped['Location'] = df_mapped['Location'].fillna('US')
     df_mapped.dropna(subset=['Amount'], inplace=True)
     df_mapped.to_csv(modulepath.parent/'model_build'/f'{filename}.csv', index=False)
 
