@@ -19,7 +19,7 @@ y <- extractAndFormatDemandVector(demand_path, 'Grains', model)
 
 
 # Or create demand vector in code
-y2 <- setNames(c(1, 2), c("WARM07", "WARM08"))
+y2 <- setNames(c(1, 2), c("WARM07/US", "WARM08/US"))
 y2 <- formatDemandVector(y2, model$L)
 
 # Generate results
@@ -34,7 +34,7 @@ print(lci[rowSums(lci[])>0,])
 
 
 impact_result <- calculateSectorPurchasedbySectorSourcedImpact(y, model, "Greenhouse Gases")
-a <- calculateSectorContributiontoImpact(model, "WARM01", "Greenhouse Gases")
+a <- calculateSectorContributiontoImpact(model, "WARM01/US", "Greenhouse Gases")
 
 
 ```
