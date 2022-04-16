@@ -13,7 +13,8 @@ configpaths <- file.path(c("USEEIO-WARM.yml",
 modelname <- "USEEIO-WARM"
 model <- buildModel(modelname, configpaths)
 
-writeModeltoXLSX(model, paste0(rappdirs::user_data_dir(), "/Model_Builds"))
+writeModeltoXLSX(model, file.path(rappdirs::user_data_dir(),
+                                  "useeior/Model_Builds"))
 printValidationResults(model)
 
 # Source demand vector from csv
