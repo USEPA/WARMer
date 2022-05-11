@@ -1,0 +1,113 @@
+---
+title: "visualize_WARM-USEEIO"
+output: html_notebook
+---
+
+## `renv` testing
+```{r}
+# install.packages("renv")  # install latest renv release into root env
+# renv::activate() # activate environment
+
+## lockfile creation
+# renv::install('remotes')
+# remotes::install_github("USEPA/useeior@hybridization")
+  # try useeior:::printValidationResults(model) or useeior:::hybridizeAMatrix to check for correct install
+# renv::snapshot(lockfile="WARMer.lock")
+
+# renv::restore(lockfile="WARMer.lock")   # populate environment w/ packages
+renv::status(lockfile = "WARMer.lock")
+pkgs <- as.data.frame(installed.packages())
+.libPaths()
+
+# renv::deactivate()
+# renv::purge(".")  # purge all packages from cache
+```
+
+
+## Build the hybrid model
+```{r}
+library('useeior')
+# devtools::load_all("./renv/library/R-4.1/x86_64-w64-mingw32/useeior")
+
+# Build model from specs
+configpaths <- file.path("data", c("USEEIO-WARM.yml",
+                                   "WARMv15.yml"))
+modelname <- "USEEIO-WARM"
+model <- buildModel(modelname, configpaths)
+```
+
+
+## Tidy and manipulate
+```{r, include=FALSE}
+libs <- c("tibble", "reshape2", "dplyr", "stringr", "ggplot2")
+lapply(libs, require, character.only = TRUE)
+source("DataVisFunctions.R")
+
+impact = "Greenhouse Gases"
+sector_map <- setNames(model$Commodities$Name, model$Commodities$Code_Loc)
+
+# direct sector impacts
+df_A_D <- stack(model$D[impact,]) %>%  # named list to df
+  rename(impact_per_purchase=values, sector_code=ind) %>% 
+  mutate(purchased_commodity = 'Direct') # not actually a commodity, but for convenience
+
+# total impacts per Tier 1 purchase by sector
+df_A <- calculateTotalImpactbyTier1Purchases(model, impact) %>% 
+  as_tibble(rownames="purchased_commodity_code") %>%  # or as.data.frame()
+  reshape2::melt(id.vars="purchased_commodity_code",          # tidyr::pivot_longer()?
+                 variable.name="sector_code", 
+                 value.name="impact_per_purchase") %>% # na.rm=TRUE/FALSE
+  mutate(  # operations necessary before appending df_A_D
+    sector_code = as.character(sector_code),  # reshape2::melt returns factor, unclear why
+    purchased_commodity = as.factor(recode(purchased_commodity_code, !!!sector_map))
+    ) %>%
+  bind_rows(df_A_D) %>% 
+  filter(impact_per_purchase != 0,
+         str_detect(sector_code, 'WARM')) %>% 
+  mutate(
+    sector = recode(sector_code, !!!sector_map),
+    sector_pathway = as.factor(case_when(          # label pathways
+      str_detect(sector, "Anaerobic digestion") ~ "AD",
+      str_detect(sector, "MSW composting")      ~ "Compost",
+      str_detect(sector, "MSW combustion")      ~ "Combustion",
+      str_detect(sector, "MSW landfilling")     ~ "Landfill",
+      str_detect(sector, "MSW recycling")       ~ "Recycle",
+      TRUE ~ sector)), # else return orig. str
+    sector_material = str_extract(sector, "(?<= of ).*(?=;)|(?<= of ).*")
+    ) %>%  
+  droplevels()  # clean up factors
+
+# [next] incorporate direct impacts
+```
+
+
+## Preliminary bar plot
+```{r, fig.height = 6, fig.width = 12}
+material_selection = "Grains"
+
+df_A_plot <- df_A %>% filter(sector_material == material_selection)
+
+df_A_summ <- df_A_plot %>% 
+  group_by(sector_pathway) %>% 
+  summarise(impact_per_purchase=sum(impact_per_purchase))
+
+p_summ = summary(df_A_plot$impact_per_purchase)  # geom_text values
+p_nudge = (p_summ["Max."] - p_summ["Min."])/100  # geom_text position adj.
+
+p <- df_A_plot %>% 
+  ggplot() + theme_bw() +
+  geom_col(aes(x=impact_per_purchase, y=sector_pathway, 
+               fill=purchased_commodity)) +
+  geom_point(data=df_A_summ, aes(x=impact_per_purchase, y=sector_pathway)) +
+  geom_text(data=df_A_summ, hjust="left", nudge_x=p_nudge, size=3.5,
+            aes(x=impact_per_purchase, y=sector_pathway, 
+                label=round(impact_per_purchase, digits=3))) +
+  theme(legend.position="bottom",
+        legend.text=element_text(size=9)) + 
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +  # wrap legend entries
+  scale_y_discrete(limits=rev) +
+  labs(title=material_selection, fill="", 
+       x=paste0(impact, " per Purchase [kg CO2e / USD]"), y="Sector Pathway")
+        # [later] paste together units from model$Indicators values?
+p
+```
