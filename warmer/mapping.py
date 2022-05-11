@@ -7,6 +7,7 @@ Functions related to mapping flows and processes
 import yaml
 from pathlib import Path
 import pandas as pd
+import numpy as np
 from esupy.mapping import apply_flow_mapping
 
 modulepath = Path(__file__).parent
@@ -24,6 +25,10 @@ def map_warmer_envflows(df):
     df = apply_flow_mapping(df, 'WARM', flow_type='ELEMENTARY_FLOW',
                             keep_unmapped_rows=True, field_dict = field_dict,
                             ignore_source_name = True)
+
+    # Mapping data for economic flows (e.g. 'Jobs') are marked with 'n.a.'
+    # for some fields. Replace those with None.
+    df = df.replace('n.a.', np.nan)
 
     return df
 
