@@ -104,23 +104,23 @@ def classify_processes(df, opt):
     of regex patterns and ordered label keys stored in warmer/processmapping/
     :param df: pandas dataframe of olca processes
     :param opt: string {'class','fgbg'}
-    """      
+    """
     with open(modulepath/'processmapping'/f'WARMv15_{opt}_regex.yaml', 'r') as f:
         rgx = yaml.safe_load(f)
-    
+
     is_a_index = 'process_name' in df.columns
     if is_a_index:  # adapt A_index.csv header to olca.processes
         df['name'] = df['process_name']
-    
+
     cond = []
     labels = list(rgx.keys())
     for key in labels:
         cond.append(df['name'].str.contains('|'.join(rgx[key])))
-    
+
     df[f'process_{opt}'] = np.select(cond, labels)
     if opt=='class':
         df['process_class'] = pd.Categorical(df['process_class'],
-                                             categories=labels, ordered=True)  
+                                             categories=labels, ordered=True)
     if is_a_index: df = df.drop(columns='name')
     return df
 
@@ -128,34 +128,34 @@ def classify_processes(df, opt):
 if __name__ == "__main__":  # revert to "==" later
     get_data = False
     get_params = False
-    
+
     if get_data:  # get olca data
         # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
         client = olca.Client(8080)
-    
+
         # print(vars(olca.schema))  # view all exportable data
         # from WARMv15 db: 799 flows, 2140 processes, 69635 parameters
-    
+
         # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
         # f = client.get('Flow', 'Carbon dioxide')
         # temp = tuple(client.get_all(olca.ProductSystem))
-        
+
         flows = tuple(client.get_all(olca.Flow)) # wrap in tuple to make it iterable
         pickle.dump(flows, open(datapath/'flows.pickle', 'wb'))
-    
+
         processes = tuple(client.get_all(olca.Process))
         pickle.dump(processes, open(datapath/'processes.pickle', 'wb'))
-    
+
         if get_params: # takes 16min+ to get these
             parameters = tuple(client.get_all(olca.Parameter))
             pickle.dump(parameters, open(datapath/'parameters.pickle', 'wb'))
-    
-    
+
+
     if not get_data:  # retrieve from pickle
         # flows = pickle.load(open(datapath/'flows.pickle', 'rb'))
         processes = pickle.load(open(datapath/'processes.pickle', 'rb'))
         # parameters = pickle.load(open(datapath/'parameters.pickle', 'rb'))
-    
+
     # for WARM db, olca.X classes that have a get_all() method...
         # cannot retrieve: AllocationFactor, FlowType, FlowMap, FlowMapEntry, FlowMapRef,
             # FlowPropertyFactor, FlowPropertyType, FlowType, ProcessLink
@@ -170,7 +170,7 @@ if __name__ == "__main__":  # revert to "==" later
 
     df_prcs = unpack_olca_tuple_to_df(processes)  # plenty of columns to expand here too
     df_exch = unpack_exchanges(df_prcs)
-    
+
     df_prcs_class = classify_processes(df_prcs, 'fgbg')
 
     if get_params: df_param = unpack_olca_tuple_to_df(parameters)
@@ -180,46 +180,46 @@ if __name__ == "__main__":  # revert to "==" later
     unpack_test = unpack_olca_tuple_to_df(df_prcs.process_type)
 
 
-if False:  # set True for script development
+# if False:  # set True for script development
 
-    dir(olca_obj)
-    vars(olca_obj)
-    # vars(olca_obj).__iter__
-    # vars(olca_obj) == olca_obj.__dict__
-    # iter(vars(prcs_smpl.exchanges[1][0]))  # can't construct df from just this
-    temp = pd.DataFrame(vars(olca_obj), index=[0])
+#     dir(olca_obj)
+#     vars(olca_obj)
+#     # vars(olca_obj).__iter__
+#     # vars(olca_obj) == olca_obj.__dict__
+#     # iter(vars(prcs_smpl.exchanges[1][0]))  # can't construct df from just this
+#     temp = pd.DataFrame(vars(olca_obj), index=[0])
 
-    # function to convert each to a csv?
-    df_prcs.name[1]  # combustion
-    df_prcs.exchanges[1]  # 15 exchanges
-    vars(df_prcs.exchanges[1][0])  # first exchange variables
-    vars(vars(df_prcs.exchanges[1][0])['flow'])
-    vars(vars(vars(df_prcs.exchanges[1][0])['flow'])['flow_type'])
-        # extraneous; elementary vs. product flows are easy to spot
-    vars(vars(df_prcs.exchanges[1][0])['flow_property'])
-        # need ['name'] only to reconstruct flat olca export
-    vars(df_prcs.exchanges[1][14])  # input: T/F determines inputs vs outputs
+#     # function to convert each to a csv?
+#     df_prcs.name[1]  # combustion
+#     df_prcs.exchanges[1]  # 15 exchanges
+#     vars(df_prcs.exchanges[1][0])  # first exchange variables
+#     vars(vars(df_prcs.exchanges[1][0])['flow'])
+#     vars(vars(vars(df_prcs.exchanges[1][0])['flow'])['flow_type'])
+#         # extraneous; elementary vs. product flows are easy to spot
+#     vars(vars(df_prcs.exchanges[1][0])['flow_property'])
+#         # need ['name'] only to reconstruct flat olca export
+#     vars(df_prcs.exchanges[1][14])  # input: T/F determines inputs vs outputs
 
 
-    ###########################################################################
-    # unpack flow_properties' single-element list values
-    df_flow.flow_properties = unpack_list_simple_col(df_flow.flow_properties)
-    df_flow['flow_properties'] = df_flow['flow_properties'].apply(lambda x: x[0])
+#     ###########################################################################
+#     # unpack flow_properties' single-element list values
+#     df_flow.flow_properties = unpack_list_simple_col(df_flow.flow_properties)
+#     df_flow['flow_properties'] = df_flow['flow_properties'].apply(lambda x: x[0])
 
-    # another approach to expanding olca obj columns
-    temp = (df_flow['category'].apply(lambda x: pd.Series(vars(x)))
-            .loc[:,['name','category_path']]
-            .rename(columns={'name':'category_name'}))
+#     # another approach to expanding olca obj columns
+#     temp = (df_flow['category'].apply(lambda x: pd.Series(vars(x)))
+#             .loc[:,['name','category_path']]
+#             .rename(columns={'name':'category_name'}))
 
-    # extract column of objects and rename field
-    a = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])
-            .rename(columns={'name':'category_name'}))
-    # unit test: # df_flow['category'][i].__dict__['name'] == a['category_name'][i]
-    b = pd.concat([df_flow,a],axis=1)
-    c = df_flow.copy(deep=True).join(a, how='inner')  # unit test: len() same before/after
-    d = df_flow.join(a, how='outer')  # unit test: len() same before/after
-    e = d.eq(c)
-    f = d.fillna(0).eq(c.fillna(0))
-    
-    # start_time = time.time()
-    # print("--- %s seconds ---" % (time.time() - start_time))
+#     # extract column of objects and rename field
+#     a = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])
+#             .rename(columns={'name':'category_name'}))
+#     # unit test: # df_flow['category'][i].__dict__['name'] == a['category_name'][i]
+#     b = pd.concat([df_flow,a],axis=1)
+#     c = df_flow.copy(deep=True).join(a, how='inner')  # unit test: len() same before/after
+#     d = df_flow.join(a, how='outer')  # unit test: len() same before/after
+#     e = d.eq(c)
+#     f = d.fillna(0).eq(c.fillna(0))
+
+#     # start_time = time.time()
+#     # print("--- %s seconds ---" % (time.time() - start_time))
