@@ -13,6 +13,13 @@ from pathlib import Path
 
 modulepath = Path(__file__).parent
 warm_version = 'WARMv15'
+model_version = 'm1'
+#model_version = None
+file_stub = f'{warm_version}'
+if model_version:
+    file_stub = file_stub + f'_{model_version}'
+
+
 
 def read_olca2(filename):
     """
@@ -278,7 +285,7 @@ def sort_idx_cols(df_idx):
 
 def format_for_export(df, opt):
     if opt == 'a':
-        filename = f'{warm_version}_tech'
+        filename = f'{file_stub}_tech'
         col_dict = {'to_process_ID': 'ProcessID',
                     'to_process_name': 'ProcessName',
                     'to_flow_unit': 'ProcessUnit',
@@ -294,7 +301,7 @@ def format_for_export(df, opt):
         # Invert all signs in A matrix
         df['Amount'] = df['Amount'] * -1
     else: # opt == 'b'
-        filename = f'{warm_version}_env'
+        filename = f'{file_stub}_env'
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
                     'from_process_location': 'Location',
@@ -309,7 +316,9 @@ def format_for_export(df, opt):
     df_mapped = df_mapped.rename(columns=col_dict)
     df_mapped['Location'] = df_mapped['Location'].fillna('US')
     df_mapped.dropna(subset=['Amount'], inplace=True)
-    df_mapped.to_csv(modulepath.parent/'model_build'/f'{filename}.csv', index=False)
+    df_mapped.to_csv(modulepath
+                     .parent/'model_build'/'data'/f'{filename}.csv',
+                     index=False)
 
     return
 
@@ -344,8 +353,12 @@ if __name__ == '__main__':
 
     df_a = map_useeio_processes(df_a)
 
-    ## Sample dataframe export (via .txt filter list)
-    df_a_eg, df_b_eg = filter_processes(df_a, df_b, 'choose_processes.csv')
+    ## Sample dataframe export (via .csv filter list)
+    if model_version == 'm1':
+        filename = 'model_1_processes.csv'
+    else:
+        filename = 'choose_processes.csv'
+    df_a_eg, df_b_eg = filter_processes(df_a, df_b, filename)
     # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
     format_for_export(df_a_eg, 'a')
     format_for_export(df_b_eg, 'b')

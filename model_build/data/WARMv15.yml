@@ -1,3 +1,4 @@
 Hybridization:
-  TechFile: WARMv15_tech.csv
-  EnvFile: WARMv15_env.csv 
+  # Model 1 includes food waste and concrete
+  TechFile: WARMv15_m1_tech.csv
+  EnvFile: WARMv15_m1_env.csv

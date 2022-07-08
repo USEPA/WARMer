@@ -1,0 +1,31 @@
+ProcessID,ProcessName,Location,Amount,Flowable,Context,Unit,FlowUUID
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,-0.013191297936,Carbon dioxide,emission/air,kg,b6f010fb-a764-3063-af2d-bcb8309a97b7
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,0.036209822864778814,Carbon dioxide,resource/air,kg,58b5cd90-8ba4-32ea-b4aa-3a3438ba8419
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,0.04219669745805684,Compensation of employees,,USD,
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,1.162944509358672e-06,Jobs,,p,
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,0.001612391586313254,Methane,emission/air,kg,aab83476-ec6c-3742-af85-15d320b7ce80
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,0.0003128122879061242,Nitrous oxide,emission/air,kg,cfee0524-7ad6-300b-b050-6249135a2492
+WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",US,0.008708304856809013,"Taxes on production and imports, less subsidies",,USD,
+WARM12,MSW composting of Food Waste,US,0.0006975782093961523,Carbon dioxide,emission/air,kg,b6f010fb-a764-3063-af2d-bcb8309a97b7
+WARM12,MSW composting of Food Waste,US,0.005676932912983091,"Taxes on production and imports, less subsidies",,USD,
+WARM12,MSW composting of Food Waste,US,5.830832651844915e-05,Nitrous oxide,emission/air,kg,cfee0524-7ad6-300b-b050-6249135a2492
+WARM12,MSW composting of Food Waste,US,0.004646529288564562,Methane,emission/air,kg,aab83476-ec6c-3742-af85-15d320b7ce80
+WARM12,MSW composting of Food Waste,US,7.054829251085784e-07,Jobs,,p,
+WARM12,MSW composting of Food Waste,US,-0.8057218619111519,"Energy, heat",resource/air,MJ,8c959db8-d359-36e3-8517-588e1c21df4a
+WARM12,MSW composting of Food Waste,US,0.02848387310125885,Compensation of employees,,USD,
+WARM12,MSW composting of Food Waste,US,0.26529226178095977,Carbon dioxide,resource/air,kg,58b5cd90-8ba4-32ea-b4aa-3a3438ba8419
+WARM15,MSW combustion of Food Waste,US,0.05087193280275139,Compensation of employees,,USD,
+WARM15,MSW combustion of Food Waste,US,0.01887166824665447,"Taxes on production and imports, less subsidies",,USD,
+WARM15,MSW combustion of Food Waste,US,0.0001356318543098846,Nitrous oxide,emission/air,kg,cfee0524-7ad6-300b-b050-6249135a2492
+WARM15,MSW combustion of Food Waste,US,7.275292665182213e-07,Jobs,,p,
+WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",US,0.09574239118815825,Carbon dioxide,resource/air,kg,58b5cd90-8ba4-32ea-b4aa-3a3438ba8419
+WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",US,0.05087193280275139,Compensation of employees,,USD,
+WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",US,7.275292665182213e-07,Jobs,,p,
+WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",US,0.02741473962156638,Methane,emission/air,kg,aab83476-ec6c-3742-af85-15d320b7ce80
+WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",US,0.01887166824665447,"Taxes on production and imports, less subsidies",,USD,
+WARM41,MSW recycling of Concrete,US,0.041601446239996474,Compensation of employees,,USD,
+WARM41,MSW recycling of Concrete,US,8.046914614519721e-07,Jobs,,p,
+WARM41,MSW recycling of Concrete,US,0.00760598778632686,"Taxes on production and imports, less subsidies",,USD,
+WARM42,MSW landfilling of Concrete,US,0.01887166824665447,"Taxes on production and imports, less subsidies",,USD,
+WARM42,MSW landfilling of Concrete,US,7.275292665182213e-07,Jobs,,p,
+WARM42,MSW landfilling of Concrete,US,0.05087193280275139,Compensation of employees,,USD,
