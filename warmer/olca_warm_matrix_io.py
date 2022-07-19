@@ -13,13 +13,6 @@ from pathlib import Path
 
 modulepath = Path(__file__).parent
 warm_version = 'WARMv15'
-model_version = 'm1'
-#model_version = None
-file_stub = f'{warm_version}'
-if model_version:
-    file_stub = file_stub + f'_{model_version}'
-
-
 
 def read_olca2(filename):
     """
@@ -285,7 +278,6 @@ def sort_idx_cols(df_idx):
 
 def format_for_export(df, opt):
     if opt == 'a':
-        filename = f'{file_stub}_tech'
         col_dict = {'to_process_ID': 'ProcessID',
                     'to_process_name': 'ProcessName',
                     'to_flow_unit': 'ProcessUnit',
@@ -301,9 +293,9 @@ def format_for_export(df, opt):
         # Invert all signs in A matrix
         df['Amount'] = df['Amount'] * -1
     else: # opt == 'b'
-        filename = f'{file_stub}_env'
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
+                    'from_process_category': 'ProcessCategory',
                     'from_process_location': 'Location',
                     'Amount': 'Amount',
                     'to_flow_name': 'Flowable',
@@ -316,13 +308,15 @@ def format_for_export(df, opt):
     df_mapped = df_mapped.rename(columns=col_dict)
     df_mapped['Location'] = df_mapped['Location'].fillna('US')
     df_mapped.dropna(subset=['Amount'], inplace=True)
-    df_mapped.to_csv(modulepath
-                     .parent/'model_build'/'data'/f'{filename}.csv',
-                     index=False)
-
-    return
+    return df_mapped
 
 if __name__ == '__main__':
+    model_version = None
+    #model_version = 'm1'
+    file_stub = f'{warm_version}'
+    if model_version:
+        file_stub = file_stub + f'_{model_version}'
+        
     a_raw, b_raw, idx_a, idx_b = map(
         read_olca2, ['A.csv', 'B.csv', 'index_A.csv', 'index_B.csv'])
 
@@ -353,17 +347,30 @@ if __name__ == '__main__':
 
     df_a = map_useeio_processes(df_a)
 
-    ## Sample dataframe export (via .csv filter list)
+    ## Sample dataframe export (via .csv filter list)        
     if model_version == 'm1':
         filename = 'model_1_processes.csv'
-    else:
+    elif model_version == 'm4':  #??? or is this the m3 file?  
         filename = 'choose_processes.csv'
+    else:
+        filename = None    
     df_a_eg, df_b_eg = filter_processes(df_a, df_b, filename)
+    
     # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
-    format_for_export(df_a_eg, 'a')
-    format_for_export(df_b_eg, 'b')
-    # df_a_eg.to_csv(modulepath/'data'/'eg_a_df.csv', index=False, header=False)
-    # df_b_eg.to_csv(modulepath/'data'/'eg_b_df.csv', index=False, header=False)
+
+    if model_version:
+        writepath = modulepath.parent/'model_build'/'data'
+        (format_for_export(df_a_eg, 'a')
+             .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
+        (format_for_export(df_b_eg, 'b')
+             .drop(columns='from_process_category')
+             .to_csv(writepath/f'{file_stub}_env.csv', index=False))
+    else:
+        writepath = modulepath/'data'/'flowsa_inputs'
+        (format_for_export(df_a, 'a')
+            .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
+        (format_for_export(df_b, 'b')
+            .to_csv(writepath/f'{file_stub}_env.csv', index=False))
 
     ## Generate processmapping.csv
     # newcols = ['MatchCondition','ConversionFactor',
