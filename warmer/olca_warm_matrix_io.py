@@ -311,12 +311,12 @@ def format_for_export(df, opt):
     return df_mapped
 
 if __name__ == '__main__':
-    model_version = None
-    #model_version = 'm1'
+    # model_version = None
+    model_version = 'm1'
     file_stub = f'{warm_version}'
     if model_version:
         file_stub = file_stub + f'_{model_version}'
-        
+
     a_raw, b_raw, idx_a, idx_b = map(
         read_olca2, ['A.csv', 'B.csv', 'index_A.csv', 'index_B.csv'])
 
@@ -347,15 +347,15 @@ if __name__ == '__main__':
 
     df_a = map_useeio_processes(df_a)
 
-    ## Sample dataframe export (via .csv filter list)        
+    ## Sample dataframe export (via .csv filter list)
     if model_version == 'm1':
         filename = 'model_1_processes.csv'
-    elif model_version == 'm4':  #??? or is this the m3 file?  
+    elif model_version == 'm4':  #??? or is this the m3 file?
         filename = 'choose_processes.csv'
     else:
-        filename = None    
+        filename = None
     df_a_eg, df_b_eg = filter_processes(df_a, df_b, filename)
-    
+
     # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
 
     if model_version:
@@ -363,7 +363,7 @@ if __name__ == '__main__':
         (format_for_export(df_a_eg, 'a')
              .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
         (format_for_export(df_b_eg, 'b')
-             .drop(columns='from_process_category')
+             .drop(columns='ProcessCategory')
              .to_csv(writepath/f'{file_stub}_env.csv', index=False))
     else:
         writepath = modulepath/'data'/'flowsa_inputs'

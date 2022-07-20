@@ -1,20 +1,20 @@
 ProcessID,ProcessName,ProcessUnit,Location,Amount,FlowID,Flow,FlowUnit
-WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,0.006469562880000001,484000/US,Truck transport,USD
-WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,-0.022566449312542126,221100/US,Electricity,USD
-WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,-0.0,WARM06/US,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg
-WARM06,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,0.005486298995626979,324110/US,"Gasoline, fuels, and by-products of petroleum refining",USD
-WARM12,MSW composting of Food Waste,kg,US,-0.0,WARM12/US,MSW composting of Food Waste,kg
-WARM12,MSW composting of Food Waste,kg,US,0.006469562880000001,484000/US,Truck transport,USD
-WARM15,MSW combustion of Food Waste,kg,US,-0.0,WARM15/US,MSW combustion of Food Waste,kg
-WARM15,MSW combustion of Food Waste,kg,US,-0.028894887012500238,221100/US,Electricity,USD
-WARM15,MSW combustion of Food Waste,kg,US,0.0244,484000/US,Truck transport,USD
-WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,0.005932952666504994,324110/US,"Gasoline, fuels, and by-products of petroleum refining",USD
-WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,0.006469562880000001,484000/US,Truck transport,USD
-WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,-0.00925986249748638,221100/US,Electricity,USD
-WARM16,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,-0.0,WARM16/US,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg
-WARM41,MSW recycling of Concrete,kg,US,-0.0,WARM41/US,MSW recycling of Concrete,kg
-WARM41,MSW recycling of Concrete,kg,US,-1.0,5dce77a7-4e5c-4152-bbae-7dfbe498a90a,"Product manufacturing, from Concrete, using 100% virgin inputs",kg
-WARM41,MSW recycling of Concrete,kg,US,1.0,df7ff60a-c451-4d06-bb9f-60d5b8d20806,"Product manufacturing, from Concrete, using 100% recycled inputs",kg
-WARM42,MSW landfilling of Concrete,kg,US,0.005932952666504994,324110/US,"Gasoline, fuels, and by-products of petroleum refining",USD
-WARM42,MSW landfilling of Concrete,kg,US,-0.0,WARM42/US,MSW landfilling of Concrete,kg
-WARM42,MSW landfilling of Concrete,kg,US,0.006469562880000001,484000/US,Truck transport,USD
+5622191F,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,0.006469562880000001,484000/US,Truck transport,USD
+5622191F,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,-0.022566449312542126,221100/US,Electricity,USD
+5622191F,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,-0.0,5622191F/US,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg
+5622191F,"Anaerobic digestion of Food Waste; Dry digestion, Cured",kg,US,0.005486298995626979,324110/US,"Gasoline, fuels, and by-products of petroleum refining",USD
+5622192F,MSW composting of Food Waste,kg,US,-0.0,5622192F/US,MSW composting of Food Waste,kg
+5622192F,MSW composting of Food Waste,kg,US,0.006469562880000001,484000/US,Truck transport,USD
+562213F,MSW combustion of Food Waste,kg,US,-0.0,562213F/US,MSW combustion of Food Waste,kg
+562213F,MSW combustion of Food Waste,kg,US,-0.028894887012500238,221100/US,Electricity,USD
+562213F,MSW combustion of Food Waste,kg,US,0.0244,484000/US,Truck transport,USD
+5622121F,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,0.005932952666504994,324110/US,"Gasoline, fuels, and by-products of petroleum refining",USD
+5622121F,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,0.006469562880000001,484000/US,Truck transport,USD
+5622121F,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,-0.00925986249748638,221100/US,Electricity,USD
+5622121F,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg,US,-0.0,5622121F/US,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",kg
+5629201C,MSW recycling of Concrete,kg,US,-0.0,5629201C/US,MSW recycling of Concrete,kg
+5629201C,MSW recycling of Concrete,kg,US,-0.112,327320/US,Ready-mix concrete,USD
+5629201C,MSW recycling of Concrete,kg,US,0.0813,327320/US,Ready-mix concrete,USD
+5622121C,MSW landfilling of Concrete,kg,US,0.005932952666504994,324110/US,"Gasoline, fuels, and by-products of petroleum refining",USD
+5622121C,MSW landfilling of Concrete,kg,US,-0.0,5622121C/US,MSW landfilling of Concrete,kg
+5622121C,MSW landfilling of Concrete,kg,US,0.006469562880000001,484000/US,Truck transport,USD
