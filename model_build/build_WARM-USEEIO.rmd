@@ -22,14 +22,13 @@ writeModeltoXLSX(model, file.path(rappdirs::user_data_dir(),
                                   "useeior/Model_Builds"))
 printValidationResults(model)
 
-# Source demand vector from csv
-demand_path <- file.path("data", "material_demand.csv")
-y <- extractAndFormatDemandVector(demand_path, 'Grains', model)
-
+# # Source demand vector from csv
+# demand_path <- file.path("data", "material_demand.csv")
+# y <- extractAndFormatDemandVector(demand_path, 'Grains', model)
 
 # Or create demand vector in code
-y2 <- setNames(c(1, 2), c("WARM07/US", "WARM08/US"))
-y2 <- formatDemandVector(y2, model$L)
+y <- setNames(c(1, 2), c("5622121C/US", "5622191F/US"))
+y <- formatDemandVector(y, model$L)
 
 # Generate results
 results <- calculateEEIOModel(model, perspective = "DIRECT", y)
@@ -40,10 +39,6 @@ print(lcia[rowSums(lcia[])>0,])
 
 lci <- results[["LCI_f"]]
 print(lci[rowSums(lci[])>0,])
-
-
-impact_result <- calculateSectorPurchasedbySectorSourcedImpact(y, model, "Greenhouse Gases")
-a <- calculateSectorContributiontoImpact(model, "WARM01/US", "Greenhouse Gases")
 
 
 ```
