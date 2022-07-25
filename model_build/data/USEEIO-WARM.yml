@@ -13,27 +13,6 @@ DisaggregationSpecs: null
 HybridizationSpecs: "WARMv15"
 
 SatelliteTable:
-  WAT:
-    FullName: "Water withdrawals"
-    Abbreviation: "WAT"
-    StaticSource: TRUE
-    StaticFile: "flowsa/FlowBySector/Water_national_2015_m1_v1.0.1_0470867.parquet"
-    FileLocation: "DataCommons"
-    DataYears: [2015]
-    Locations: ["US"]
-    SectorListSource: "NAICS"
-    SectorListYear: 2012
-    SectorListLevel: "6"
-    OriginalFlowSource: "FEDEFLv1.0.6"
-    ScriptFunctionCall: "getFlowbySectorCollapsed" #function to call for script
-    ScriptFunctionParameters: null
-    DataSources:
-      USGS_NWIS_WU_2015:
-        Title: "Water Use in the US"
-        Author: "USGS"
-        DataYear: 2015
-        URL: "https://waterdata.usgs.gov/"
-        Primary: TRUE
   GHG:
     FullName: "Greenhouse Gases"
     Abbreviation: "GHG"
@@ -142,23 +121,6 @@ Indicators:
         DataYear: NA
         URL: "https://www.epa.gov/chemical-research/tool-reduction-and-assessment-chemicals-and-other-environmental-impacts-traci"
         Primary: TRUE
-  ValueAdded:
-    Name: "Value Added"
-    Code: "VADD"
-    Group: "Economic & Social"
-    Unit: "$"
-    SimpleUnit: "US Dollars ($)"
-    SimpleName: "Value Added"
-    StaticSource: TRUE
-    StaticFile: "USEEIO_LCIA_Factors.csv"
-    FileLocation: "useeior"
-    DataSources:
-      ingwersen_useeiov11_2017:
-        Title: "USEEIOv1.1 - Elementary Flows and Life Cycle Impact Assessment (LCIA) Characterization Factors"
-        Author: "USEPA"
-        DataYear: 2020
-        URL: "http://doi.org/10.23719/1368541"
-        Primary: TRUE
   Jobs:
     Name: "Jobs Supported"
     Code: "JOBS"
@@ -176,7 +138,57 @@ Indicators:
         DataYear: 2020
         URL: "http://doi.org/10.23719/1368541"
         Primary: TRUE
-
+  Wages:
+    Name: "Wages"
+    Code: "WAGE"
+    Group: "Economic & Social"
+    Unit: "$"
+    SimpleUnit: "Dollars"
+    SimpleName: "Wages"
+    StaticSource: TRUE
+    StaticFile: "USEEIO_LCIA_Factors.csv"
+    FileLocation: "useeior"
+    DataSources:
+      TBD:
+        Title: ""
+        Author: ""
+        DataYear: ""
+        URL: ""
+        Primary: TRUE
+  Taxes:
+    Name: "Taxes"
+    Code: "TAX"
+    Group: "Economic & Social"
+    Unit: "$"
+    SimpleUnit: "Dollars"
+    SimpleName: "Taxes"
+    StaticSource: TRUE
+    StaticFile: "USEEIO_LCIA_Factors.csv"
+    FileLocation: "useeior"
+    DataSources:
+      TBD:
+        Title: ""
+        Author: ""
+        DataYear: ""
+        URL: ""
+        Primary: TRUE
+  ValueAdded:
+    Name: "Value Added"
+    Code: "VADD"
+    Group: "Economic & Social"
+    Unit: "$"
+    SimpleUnit: "US Dollars ($)"
+    SimpleName: "Value Added"
+    StaticSource: TRUE
+    StaticFile: "USEEIO_LCIA_Factors.csv"
+    FileLocation: "useeior"
+    DataSources:
+      ingwersen_useeiov11_2017:
+        Title: "USEEIOv1.1 - Elementary Flows and Life Cycle Impact Assessment (LCIA) Characterization Factors"
+        Author: "USEPA"
+        DataYear: 2020
+        URL: "http://doi.org/10.23719/1368541"
+        Primary: TRUE
 
 DemandVectors:
     DefaultDemand: "DefaultDemandVectors" # Name of default demand vectors yml file
