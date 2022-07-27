@@ -27,6 +27,11 @@ def read_olca2(filename):
     df = (pd.read_csv(modulepath/'data'/'warm_olca_mtx'/filename, header=opt_h)
            .dropna(how='all', axis='columns'))  # drop entirely-nan columns
     df.columns = df.columns.astype(str).str.replace(' ', '_')
+
+    # correct economic flow units in WARMv15: USD 2002 should be USD 2007
+    if filename == 'index_B.csv':
+        df['flow_unit'] = df['flow_unit'].replace('USD 2002', 'USD 2007')
+
     return df
 
 def normalize_mtcs(mtx_a, mtx_b):
