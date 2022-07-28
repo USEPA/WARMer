@@ -7,7 +7,7 @@ output: html_notebook
 ```{r}
 # install.packages("renv")  # install latest renv release into root env
 
-## lockfile creation
+## Lockfile creation
 # renv::activate()
 # renv::install('remotes')
 # remotes::install_github("USEPA/useeior@hybridization")
@@ -16,7 +16,7 @@ output: html_notebook
 
 ## Populate an empty env w/ packages from existing lockfile
 # renv::activate()
-# renv::restore(lockfile="WARMer.lock")   
+# renv::restore(lockfile="WARMer.lock")
 
 ## Status checks
 # renv::status(lockfile = "WARMer.lock")
@@ -26,7 +26,7 @@ output: html_notebook
 ## Upadate useeior to latest commit: overwrite RemoteSha & delete Hash in lockfile
 # renv::purge("useeior")  # purge old copy from cache
 # renv::remove("useeior")
-# remotes::install_github("USEPA/useeior@hybridization")  # reinstall
+# remotes::install_github("USEPA/useeior@WIO")  # reinstall
 # renv::snapshot(lockfile="WARMer.lock")  # update the lockfile
 
 ## Wipe current renv & purge pkg cache
@@ -52,11 +52,20 @@ model <- buildModel(modelname, configpaths)
 ```{r, include=FALSE}
 source("DataVisFunctions.R")
 
-impact = "Greenhouse Gases"
 
-df_A <- useeior:::disaggregateTotalToDirectAndTier1(model, impact) %>%
-  dplyr::filter(stringr::str_detect(sector_code, 'WARM'), # keep WARM purchasing sectors
-                impact_per_purchase != 0) %>%             # and non-0 purchases
+# choose impact (from model$Indicators$meta$Name) to visualize
+# WARMv15 impacts available: {"Greenhouse Gases", "Wages", "Taxes"}
+impact_vis = "Wages"  # "Greenhouse Gases"
+
+df_warm <- read.csv(file.path("data", "WARMv15_cntb_results.csv")) %>% 
+  dplyr::filter(impact == impact_vis) %>%   # filter by  on impact
+  dplyr::select(-impact)                    # then drop column
+
+df_A <- useeior:::disaggregateTotalToDirectAndTier1(model, impact_vis) %>%
+  dplyr::filter(sector_code %in% model$HybridizationSpecs$Processes$Code_Loc,
+                impact_per_purchase != 0) %>% # keep WARM sectors & their non-0 purchases
+  tibble::add_column(source = modelname) %>%
+  dplyr::bind_rows(., df_warm) %>% 
   labelSectorPathwaysAndMaterials()
 ```
 
@@ -70,7 +79,16 @@ df_A <- useeior:::disaggregateTotalToDirectAndTier1(model, impact) %>%
 #       sector, "(?<= of ).*(?=;)|(?<= of ).*")) %>% 
 #   dplyr::distinct(sector_material) 
 
-material_selection = "Grains"
-p <- plotByMaterial(df_A, material_selection)
+
+#[next] named list for assigning numerator unit label in figure via impact_vis
+
+material_selection = "Food Waste"
+p <- plotByMaterial(df_A, material_selection, impact_vis)
+# p <- plotByMaterial(df_A, material_selection, impact_vis, modelname)
 p
+
+material_selection = "Concrete"
+q <- plotByMaterial(df_A, material_selection, impact_vis)
+# q <- plotByMaterial(df_A, material_selection, impact_vis, "WARMv15")
+q
 ```

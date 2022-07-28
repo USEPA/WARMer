@@ -1,0 +1,58 @@
+﻿sector,purchased_commodity,impact_per_purchase,impact,source
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Direct,0.084128399,Greenhouse Gases,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured","Gasoline, fuels, and by-products of petroleum refining",0.021197447,Greenhouse Gases,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Truck transport,0.003615581,Greenhouse Gases,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Electricity,-0.154951901,Greenhouse Gases,WARMv15
+MSW composting of Food Waste,Direct,-0.131031746,Greenhouse Gases,WARMv15
+MSW composting of Food Waste,Truck transport,0.003615581,Greenhouse Gases,WARMv15
+MSW combustion of Food Waste,Direct,0.040421756,Greenhouse Gases,WARMv15
+MSW combustion of Food Waste,Truck transport,0.009920802,Greenhouse Gases,WARMv15
+MSW combustion of Food Waste,Electricity,-0.198405013,Greenhouse Gases,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Direct,0.589637343,Greenhouse Gases,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions","Gasoline, fuels, and by-products of petroleum refining",0.018706223,Greenhouse Gases,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Truck transport,0.003615581,Greenhouse Gases,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Electricity,-0.063581316,Greenhouse Gases,WARMv15
+MSW recycling of Concrete,Direct,0,Greenhouse Gases,WARMv15
+MSW recycling of Concrete,"Ready-mix concrete, recycled",0.009997964,Greenhouse Gases,WARMv15
+MSW recycling of Concrete,"Ready-mix concrete, virgin",-0.018805431,Greenhouse Gases,WARMv15
+MSW landfilling of Concrete,Direct,0,Greenhouse Gases,WARMv15
+MSW landfilling of Concrete,"Gasoline, fuels, and by-products of petroleum refining",0.018706223,Greenhouse Gases,WARMv15
+MSW landfilling of Concrete,Truck transport,0.003615581,Greenhouse Gases,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Direct,8.69,Taxes,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Truck transport,0,Taxes,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured","Gasoline, fuels, and by-products of petroleum refining",0,Taxes,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Electricity,0,Taxes,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Direct,42.108,Wages,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Truck transport,0,Wages,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured","Gasoline, fuels, and by-products of petroleum refining",0,Wages,WARMv15
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",Electricity,0,Wages,WARMv15
+MSW composting of Food Waste,Direct,5.665,Taxes,WARMv15
+MSW composting of Food Waste,Truck transport,0,Taxes,WARMv15
+MSW composting of Food Waste,Direct,28.424,Wages,WARMv15
+MSW composting of Food Waste,Truck transport,0,Wages,WARMv15
+MSW combustion of Food Waste,Direct,18.832,Taxes,WARMv15
+MSW combustion of Food Waste,Electricity,0,Taxes,WARMv15
+MSW combustion of Food Waste,Truck transport,0,Taxes,WARMv15
+MSW combustion of Food Waste,Direct,50.765,Wages,WARMv15
+MSW combustion of Food Waste,Electricity,0,Wages,WARMv15
+MSW combustion of Food Waste,Truck transport,0,Wages,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Direct,18.832,Taxes,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Truck transport,0,Taxes,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions","Gasoline, fuels, and by-products of petroleum refining",0,Taxes,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Electricity,0,Taxes,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Direct,50.765,Wages,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Truck transport,0,Wages,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions","Gasoline, fuels, and by-products of petroleum refining",0,Wages,WARMv15
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",Electricity,0,Wages,WARMv15
+MSW recycling of Concrete,Direct,7.59,Taxes,WARMv15
+MSW recycling of Concrete,"Ready-mix concrete, recycled",0,Taxes,WARMv15
+MSW recycling of Concrete,"Ready-mix concrete, virgin",0,Taxes,WARMv15
+MSW recycling of Concrete,Direct,41.514,Wages,WARMv15
+MSW recycling of Concrete,"Ready-mix concrete, recycled",0,Wages,WARMv15
+MSW recycling of Concrete,"Ready-mix concrete, virgin",0,Wages,WARMv15
+MSW landfilling of Concrete,Direct,18.832,Taxes,WARMv15
+MSW landfilling of Concrete,"Gasoline, fuels, and by-products of petroleum refining",0,Taxes,WARMv15
+MSW landfilling of Concrete,Truck transport,0,Taxes,WARMv15
+MSW landfilling of Concrete,Direct,50.765,Wages,WARMv15
+MSW landfilling of Concrete,"Gasoline, fuels, and by-products of petroleum refining",0,Wages,WARMv15
+MSW landfilling of Concrete,Truck transport,0,Wages,WARMv15

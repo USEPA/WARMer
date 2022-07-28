@@ -24,23 +24,43 @@ labelSectorPathwaysAndMaterials <- function(df) {
 #' related to a specified material (i.e., a substring of the sector names)
 #' @param df dataframe
 #' @param material str, name of a material from WARM sector names
+#' @param source_mod str, name of model results source
 #' @return A stacked bar chart of direct and per-tier-1-purchase impacts by sector
-plotByMaterial <- function(df, material) {
-  df_plot <- df %>% dplyr::filter(sector_material == material)
+plotByMaterial <- function(df, material, impact, source_mod) {
+  if (missing(source_mod)) {
+    df_plot <- df %>% 
+      dplyr::filter(sector_material == material) %>% 
+      dplyr::mutate(sector_pathway = paste0(sector_pathway, ", ", source))
+  }
+  else {
+    df_plot <- df %>% 
+      dplyr::filter(sector_material == material, 
+                    source == source_mod)
+  }
   
   df_totals <- df_plot %>% 
     dplyr::group_by(sector_pathway) %>% 
     dplyr::summarise(impact_per_purchase=sum(impact_per_purchase))
   
   p_summ = summary(df_plot$impact_per_purchase)  # summarize all impact values
-  p_nudge = (p_summ["Max."] - p_summ["Min."])/100  # to get a geom_text position adj.
+  # create array of geom_text nudges via comparison to central plot value
+  p_nudge_abs = (p_summ[["Max."]] - p_summ[["Min."]])/100
+  p_nudge_mid = (p_summ[["Max."]] - p_summ[["Min."]])/2 + p_summ[["Min."]]
+  p_nudge_dir = ifelse(df_totals$impact_per_purchase >= p_nudge_mid, -1, 1)
+  p_nudge = p_nudge_abs * p_nudge_dir
+  p_nudge = ifelse(df_totals$impact_per_purchase <0, p_nudge * 2, p_nudge)
+    # extra space for minus signs
+  
+  impact_label <- setNames(c("kg CO2e", "USD 2012", "USD 2012"), 
+                           c("Greenhouse Gases", "Wages", "Taxes"))
   
   p <- df_plot %>% 
     ggplot() + theme_bw() +
     geom_col(aes(x=impact_per_purchase, y=sector_pathway, 
                  fill=purchased_commodity)) +
     geom_point(data=df_totals, aes(x=impact_per_purchase, y=sector_pathway)) +
-    geom_text(data=df_totals, hjust="left", nudge_x=p_nudge, size=3.5,
+    geom_text(data=df_totals, hjust="inward", size=3.5,
+              nudge_x=p_nudge, 
               aes(x=impact_per_purchase, y=sector_pathway, 
                   label=round(impact_per_purchase, digits=3))) +
     theme(legend.position="bottom",
@@ -48,14 +68,14 @@ plotByMaterial <- function(df, material) {
     guides(fill=guide_legend(nrow=2, byrow=TRUE)) +  # wrap legend entries
     scale_y_discrete(limits=rev) +
     labs(title=material, fill="",
-         x=paste0(impact, " [kg CO2e / kg ", material, "]"),
+         x=paste0(impact, " [", impact_label[[impact]], " / kg ", material, "]"),
          y="Sector Pathway")
   return(p)
 }
 
+
 #' # [later] paste together units from model$Indicators values?
 #' # [later] any value in converting certain string fields to factors?
-#' 
 
 
 ## Using magrittr pipes:
