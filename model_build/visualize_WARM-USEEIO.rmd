@@ -52,43 +52,65 @@ model <- buildModel(modelname, configpaths)
 ```{r, include=FALSE}
 source("DataVisFunctions.R")
 
-
 # choose impact (from model$Indicators$meta$Name) to visualize
-# WARMv15 impacts available: {"Greenhouse Gases", "Wages", "Taxes"}
-impact_vis = "Wages"  # "Greenhouse Gases"
+# WARMv15 impacts available: {"Greenhouse Gases", "Wages", "Taxes", "Jobs Supported"}
+impact_vis = "Jobs Supported"
 
+# import WARM results
 df_warm <- read.csv(file.path("data", "WARMv15_cntb_results.csv")) %>% 
-  dplyr::filter(impact == impact_vis) %>%   # filter by  on impact
-  dplyr::select(-impact)                    # then drop column
+  dplyr::filter(impact == impact_vis) %>%   # filter by impact
+  dplyr::select(-impact)                    # then drop impact col
 
 df_A <- useeior:::disaggregateTotalToDirectAndTier1(model, impact_vis) %>%
   dplyr::filter(sector_code %in% model$HybridizationSpecs$Processes$Code_Loc,
                 impact_per_purchase != 0) %>% # keep WARM sectors & their non-0 purchases
   tibble::add_column(source = modelname) %>%
-  dplyr::bind_rows(., df_warm) %>% 
+  dplyr::bind_rows(., df_warm) %>%            # merge in WARM results
   labelSectorPathwaysAndMaterials()
+
+
+# # total sector impacts per purchase, ordered
+# sector_order <- c(
+#  "Anaerobic digestion of Food Waste; Dry digestion, Cured",
+#  "MSW composting of Food Waste",
+#  "MSW combustion of Food Waste",
+#  "MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",
+#  "MSW recycling of Concrete",
+#  "MSW landfilling of Concrete")
+# 
+# df_A_summ <- df_A %>% 
+#   dplyr::group_by(source, sector, sector_code) %>%
+#   dplyr::summarise(total = sum(impact_per_purchase), .groups="drop") %>%
+#   dplyr::arrange(desc(source), match(sector, sector_order)) %>% 
+#   write.csv(file.path("output", glue::glue("{modelname}_{impact_vis}.csv")))
 ```
 
 
 ## Preliminary bar plot
 ```{r, fig.height = 6, fig.width = 12}
-## Inspect available WARMer sector materials
-# df_A %>% 
-#   dplyr::mutate(
-#     sector_material = stringr::str_extract(
-#       sector, "(?<= of ).*(?=;)|(?<= of ).*")) %>% 
-#   dplyr::distinct(sector_material) 
+# manually specify legend order & legend item linebreak (wrap) position
+legend_order <- c("Direct", "Gasoline, fuels, and by-products of petroleum refining",
+                  "Electricity", "Truck transport", "Ready-mix concrete", 
+                  "Ready-mix concrete, recycled", "Ready-mix concrete, virgin")
 
+legend_wrap <- unique(df_A$purchased_commodity) %>% 
+  setNames(sub("((?<=, and)\\s)|((?<=,)\\s(?!and))(?!.*,)", "\n", ., perl=TRUE), .)
 
-#[next] named list for assigning numerator unit label in figure via impact_vis
+df_A$purchased_commodity <- df_A$purchased_commodity %>% 
+  factor(levels = legend_order) %>% 
+  dplyr::recode(!!!legend_wrap)
 
 material_selection = "Food Waste"
-p <- plotByMaterial(df_A, material_selection, impact_vis)
-# p <- plotByMaterial(df_A, material_selection, impact_vis, modelname)
+p <- plotByMaterial(df_A, material_selection, impact_vis) # ,modelname)
 p
+ggsave(
+  gsub(" ", "", glue::glue("img/{modelname}_{impact_vis}_{material_selection}.png")),
+  width = 8, height = 5)
 
 material_selection = "Concrete"
-q <- plotByMaterial(df_A, material_selection, impact_vis)
-# q <- plotByMaterial(df_A, material_selection, impact_vis, "WARMv15")
+q <- plotByMaterial(df_A, material_selection, impact_vis) #, "WARMv15")
 q
+ggsave(
+  gsub(" ", "", glue::glue("img/{modelname}_{impact_vis}_{material_selection}.png")),
+  width = 8, height = 5)
 ```

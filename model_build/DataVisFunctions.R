@@ -41,7 +41,7 @@ plotByMaterial <- function(df, material, impact, source_mod) {
   df_totals <- df_plot %>% 
     dplyr::group_by(sector_pathway) %>% 
     dplyr::summarise(impact_per_purchase=sum(impact_per_purchase))
-  
+
   p_summ = summary(df_plot$impact_per_purchase)  # summarize all impact values
   # create array of geom_text nudges via comparison to central plot value
   p_nudge_abs = (p_summ[["Max."]] - p_summ[["Min."]])/100
@@ -51,8 +51,8 @@ plotByMaterial <- function(df, material, impact, source_mod) {
   p_nudge = ifelse(df_totals$impact_per_purchase <0, p_nudge * 2, p_nudge)
     # extra space for minus signs
   
-  impact_label <- setNames(c("kg CO2e", "USD 2012", "USD 2012"), 
-                           c("Greenhouse Gases", "Wages", "Taxes"))
+  impact_label <- setNames(c("kg CO2e", "USD 2012", "USD 2012", "Jobs"), 
+                           c("Greenhouse Gases", "Wages", "Taxes", "Jobs Supported"))
   
   p <- df_plot %>% 
     ggplot() + theme_bw() +
@@ -62,12 +62,12 @@ plotByMaterial <- function(df, material, impact, source_mod) {
     geom_text(data=df_totals, hjust="inward", size=3.5,
               nudge_x=p_nudge, 
               aes(x=impact_per_purchase, y=sector_pathway, 
-                  label=round(impact_per_purchase, digits=3))) +
+                  label=formatC(impact_per_purchase, digits=3))) +
     theme(legend.position="bottom",
           legend.text=element_text(size=9)) +
     guides(fill=guide_legend(nrow=2, byrow=TRUE)) +  # wrap legend entries
     scale_y_discrete(limits=rev) +
-    labs(title=material, fill="",
+    labs(fill="", #title=material, 
          x=paste0(impact, " [", impact_label[[impact]], " / kg ", material, "]"),
          y="Sector Pathway")
   return(p)
