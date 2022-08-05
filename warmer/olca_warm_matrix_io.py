@@ -80,8 +80,7 @@ def melt_mtx(mtx_i, opt):
         print(f'WARNING invalid "opt" string: {opt}')
         return None
 
-    df = (pd.melt(mtx_i, id_vars=k[0], var_name=k[1], value_name='Amount')
-          .query('Amount != 0'))  # drop empty exchanges
+    df = pd.melt(mtx_i, id_vars=k[0], var_name=k[1], value_name='Amount')
     return df
 
 
@@ -316,8 +315,8 @@ def format_for_export(df, opt):
     return df_mapped
 
 if __name__ == '__main__':
-    # model_version = None
-    model_version = 'm1'
+    model_version = None
+    # model_version = 'm1'
     file_stub = f'{warm_version}'
     if model_version:
         file_stub = file_stub + f'_{model_version}'
@@ -366,14 +365,16 @@ if __name__ == '__main__':
     if model_version:
         writepath = modulepath.parent/'model_build'/'data'
         (format_for_export(df_a_eg, 'a')
+             .query('Amount != 0')  # drop empty exchanges
              .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
         (format_for_export(df_b_eg, 'b')
              .drop(columns='ProcessCategory')
+             .query('Amount != 0')  # drop empty exchanges
              .to_csv(writepath/f'{file_stub}_env.csv', index=False))
     else:
         writepath = modulepath/'data'/'flowsa_inputs'
-        (format_for_export(df_a, 'a')
-            .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
+        # (format_for_export(df_a, 'a')
+        #     .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
         (format_for_export(df_b, 'b')
             .to_csv(writepath/f'{file_stub}_env.csv', index=False))
 
