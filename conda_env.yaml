@@ -10,5 +10,5 @@ dependencies:           # cloned repo [https://github.com/USEPA/WARMer.git] will
 
     - pip:
         - olca-ipc==0.0.10     # latest version 0.0.11 incompatible w/ FEDEFL
-        - "git+https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List.git@warm#egg=fedelemflowlist"
+        - "git+https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List.git@develop#egg=fedelemflowlist"
         - "git+https://github.com/USEPA/esupy.git@develop#egg=esupy"
