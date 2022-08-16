@@ -1,13 +1,15 @@
-# https://greendelta.github.io/olca-ipc.py/olca/ipc.html
+# olca docs: https://greendelta.github.io/olca-ipc.py/olca/ipc.html
 
-# import time
+"""
+Functions for unpacking and flattening WARMv15 OpenLCA db's data objects
+"""
+
+import pickle
+from pathlib import Path
 
 import numpy as np
 import olca
 import pandas as pd
-import pickle
-import yaml
-from pathlib import Path
 
 modulepath = Path(__file__).parent
 datapath = modulepath/'data'
@@ -27,21 +29,6 @@ def unpack_olca_tuple_to_df(iterable, cols = ['all']):
     # temp = (unpack_olca_tuple_to_df(df_flow['category'], ['name','category_path'])
     #         .rename(columns={'name':'category_name'}))
     return df
-
-# def unpack_olca_dict_col(col):
-#     """
-#     Extract olca object nested data from df columns
-#     :param col: pandas dataframe column (i.e., numpy array)
-#     """
-#     if col.dtype == 'O':
-#         if is_col_olca(col):
-
-#             df = pd.DataFrame(vars(col), index=[0])
-#             ## still working through this
-#         else:
-#             print(f'{col.name} contains objects (e.g., lists of olca), \
-#                   but not individual olca objects')
-#     return df
 
 def unpack_list_simple_col(col):
     """
@@ -98,32 +85,6 @@ def exch_dict(proc, exch):
             'flow': flow, 'flow_type': flow_type,
             'amount': amount}
 
-def classify_processes(df, opt):
-    """
-    Classify and label WARM db processes via a dictionary (selected via 'opt')
-    of regex patterns and ordered label keys stored in warmer/processmapping/
-    :param df: pandas dataframe of olca processes
-    :param opt: string {'class','fgbg'}
-    """
-    with open(modulepath/'processmapping'/f'WARMv15_{opt}_regex.yaml', 'r') as f:
-        rgx = yaml.safe_load(f)
-
-    is_a_index = 'process_name' in df.columns
-    if is_a_index:  # adapt A_index.csv header to olca.processes
-        df['name'] = df['process_name']
-
-    cond = []
-    labels = list(rgx.keys())
-    for key in labels:
-        cond.append(df['name'].str.contains('|'.join(rgx[key])))
-
-    df[f'process_{opt}'] = np.select(cond, labels)
-    if opt=='class':
-        df['process_class'] = pd.Categorical(df['process_class'],
-                                             categories=labels, ordered=True)
-    if is_a_index: df = df.drop(columns='name')
-    return df
-
 
 if __name__ == "__main__":  # revert to "==" later
     get_data = False
@@ -170,8 +131,6 @@ if __name__ == "__main__":  # revert to "==" later
 
     df_prcs = unpack_olca_tuple_to_df(processes)  # plenty of columns to expand here too
     df_exch = unpack_exchanges(df_prcs)
-
-    df_prcs_class = classify_processes(df_prcs, 'fgbg')
 
     if get_params: df_param = unpack_olca_tuple_to_df(parameters)
 

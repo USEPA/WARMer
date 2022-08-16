@@ -18,8 +18,8 @@ special:
 
 supporting service:
     - Process energy.*
-    - Transport.*        
-    - Distillate oil.*
+    - Transport.*         # evaluated sequentially, after patterns in background_map, to avoid multiple match conflict
+    - Distillate oil.*    # evaluated sequentially, after patterns in background_map, to avoid multiple match conflict
     - Residual oil.*
 
 scenario process:

@@ -1,6 +1,7 @@
-﻿5622191F,"Anaerobic digestion of Food Waste; Dry digestion, Cured"
-5622192F,MSW composting of Food Waste
-562213F,MSW combustion of Food Waste
-5622121F,"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions"
-5629201C,MSW recycling of Concrete
-5622121C,MSW landfilling of Concrete
+﻿process_name,process_ID
+"Anaerobic digestion of Food Waste; Dry digestion, Cured",5622191F
+MSW composting of Food Waste,5622192F
+MSW combustion of Food Waste,562213F
+"MSW landfilling of Food Waste; National average LFG recovery, typical collection, National average conditions",5622121F
+MSW recycling of Concrete,5629201C
+MSW landfilling of Concrete,5622121C

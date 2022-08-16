@@ -6,8 +6,9 @@ Functions related to mapping flows and processes
 
 import yaml
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 from esupy.mapping import apply_flow_mapping
 
 modulepath = Path(__file__).parent
@@ -42,8 +43,12 @@ def map_useeio_processes(df):
     df = df.merge(mapping[mapping_cols],
                   how='left', left_on = ['from_process_ID'],
                   right_on = ['process ID'])
-    criteria = (df['from_process_fgbg'] == 'background_map') & \
-               (df['TargetProcessName'].notnull())
+    if 'from_process_fgbg' in df.columns:
+        criteria = (df['from_process_fgbg'] == 'background_map') & \
+                   (df['TargetProcessName'].notnull())
+    elif 'from_process_class' in df.columns:
+       criteria = (df['from_process_class'] == 'special') & \
+                   (df['TargetProcessName'].notnull())
     print(f'mapping {sum(criteria)} processes')
     df.loc[criteria, 'from_process_name'] = df['TargetProcessName']
     df.loc[criteria, 'from_process_ID'] = df['TargetProcessID']

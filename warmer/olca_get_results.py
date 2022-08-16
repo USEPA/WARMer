@@ -4,13 +4,12 @@ Extract LCIA contribution trees for select WARMv15 OpenLCA processes
 Last Updated: 2022.07.13
 """
 import pickle
+from pathlib import Path
 
 import olca
 import pandas as pd
 
-from mapping import map_warmer_envflows, map_useeio_processes
-from olca_data_unpack import classify_processes
-from pathlib import Path
+from olca_warm_matrix_io import classify_processes
 
 modulepath = Path(__file__).parent
 datapath = modulepath/'data'
@@ -18,7 +17,7 @@ datapath = modulepath/'data'
 def get_dump_load(data_type, get=False, client=None, get_opt='all',
                   dump=False, load=False):
     """
-    Get olca data objects from an open olca.Client() object, dump them to a pickle,
+    Get olca data objects from anfrom pathlib import Path open olca.Client() object, dump them to a pickle,
     and/or load them from a pickle via olca.<data_type> attribute strings
     :param data_type: str, olca schema attribute
     :param client: object, connected olca.Client()
@@ -87,7 +86,7 @@ def unpack_dict_col(df, col):
                     pd.json_normalize(df[col], sep='_')],
                    axis='columns')
 
-    ## Two dict flattening options:
+    ## Two dict flattening approaches:
         # pd.json_normalize(df[col])
         # df[col].apply(pd.Series)
     # def kwargs_view(**kwargs):
