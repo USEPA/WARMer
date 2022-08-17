@@ -74,9 +74,49 @@ def normalize_mtcs(mtx_a, mtx_b):
     a_diag = a.diagonal()
     a_norm = a / a_diag[None,:]  # column-wise division by diagonal elements
     b_norm = b / a_diag[None,:]
-    a_norm = pd.DataFrame(a_norm)
-    b_norm = pd.DataFrame(b_norm)
     return a_norm, b_norm
+
+def populate_mixer_processes(mtx_a, mtx_b, idx_a):
+    """
+    Repopulate foreground (fg) "mixer" processes in A and B with sums of the
+    tier-1 purchases and elementary flows of their constituent (fg) processes.
+    WARMv15 mixer processes are identified as those that lack elementary flows.
+    :param mtx_a: pd.DataFrame, unlabeled A-matrix
+    :param mtx_b: pd.DataFrame, unlabeled b-matrix
+    :param idx_a: pd.DataFrame, labels for A-matrix rows & cols, B-matrix cols
+    """
+    zero_flows = np.sum(np.abs(mtx_b), axis=0) == 0
+    fg_prcs = idx_a['process_class'].eq('waste treatment pathway').to_numpy()
+    mixers = np.multiply(zero_flows, fg_prcs).astype(int)
+    # idx_a.process_name[mixers.astype(bool)]  # check idcs & process_name
+
+    y = np.diag(mixers)
+    mtx_b_pop = (mtx_b @ mtx_a @ y) + mtx_b  # '@' equivalent to np.matmul()
+
+
+    mtx_a_mix = mtx_a * mixers  # multiply mtx_a columns by mixers elements {0, 1}
+    mtx_a_pop = (mtx_a @ mtx_a_mix) + mtx_a
+    ## NOTES:
+    # Many instances of 1 or -1 become 2 or -2 (respectively) due to diag elements
+    # Altering mixer cols via '@' matmul instead of iteratively (by column)
+    # occasionally returns slightly different values due to
+        # differing decimal precision (e.g., element [462, 170], +/- 1 digit),
+        # or rounding of very small val (e.g., [90, 213] ~= -7e-18) to 0
+
+    ## By-column inspection:
+    # for col in np.where(mixers)[0].tolist():
+    # col = 90 # differing row vals: {90: 213, 462: 170}
+    # y_a_p = mtx_a[:,col]
+    # mtx_a_p = mtx_a @ y_a_p
+    # cmpr = mtx_a_pop[:,col] == (mtx_a[:,col] + mtx_a_p)
+    # print(f'[{col}]: {cmpr.all()}')
+    # if not cmpr.all():
+    #     cmpr_cols = np.concatenate(
+    #         (mtx_a_pop[:,col].reshape(-1, 1),
+    #          (mtx_a[:,col] + mtx_a_p).reshape(-1, 1)),
+    #         axis=1)
+    #     np.where(cmpr_cols[:,0] != cmpr_cols[:,1])
+    return mtx_a_pop, mtx_b_pop
 
 def append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b):
     """
@@ -87,16 +127,12 @@ def append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b):
     :param idx_a: pd.DataFrame, labels for A-matrix rows & cols, B-matrix cols
     :param idx_b: pd.DataFrame, labels for B-matrix rows
     """
+    mtx_a, mtx_b = map(pd.DataFrame, [mtx_a, mtx_b])
     mtx_a.columns = idx_a['process_ID']
     mtx_a.insert(loc=0, column='from_process_ID', value=idx_a['process_ID'])
 
     mtx_b.columns = idx_a['process_ID']  # i.e., why this fxn needs all 4 df's
     mtx_b.insert(loc=0, column='to_flow_ID', value=idx_b['flow_ID'])
-    return mtx_a, mtx_b
-
-def populate_mtx_mixer_processes(mtx_a, mtx_b, idx_a, idx_b):
-    # 1. Some 145 processes in A-mtx are technosphere mixing processes,
-        # with all 0-valued elementary flows and no entries in df_b
     return mtx_a, mtx_b
 
 def melt_mtx(mtx_i, opt):
@@ -305,7 +341,14 @@ def pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b):
     mtx_b_lab = mtx_b_lab.drop(columns='flow_ID_temp')
     return mtx_a_lab, mtx_b_lab
 
-def format_tables(df, opt):
+def format_tables(df, opt, opt_map):
+    """
+    Reorder columns and map in new headers, plus drop NA Amount rows and fill
+    Location NAs w/ 'US'
+    :param df: pd.DataFrame, df_a or df_b
+    :param opt: str, {'a', 'b'} switch for df_a or df_b headers
+    :param opt_map: str, switch for including 'FlowUUID' header in df_b
+    """
     if opt == 'a':
         col_dict = {'to_process_ID': 'ProcessID',
                     'to_process_name': 'ProcessName',
@@ -315,12 +358,13 @@ def format_tables(df, opt):
                     'from_process_ID': 'FlowID',
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
-                    # 'from_process_class': 'FlowMap'  # use when fbgb is needed
                     }
-        df.loc[(df['to_process_ID'] == df['from_process_ID'].str.split('/').str[0]) &
-               (df['Amount']==1), 'Amount'] = 0
-        # Invert all signs in A matrix
-        df['Amount'] = df['Amount'] * -1
+        # Find and set mtx_a diagonal exchanges to 0, then invert all signs
+        df['Amount'] = -1 * np.where(
+            ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
+             (df['Amount'] == 1)),
+            0, df['Amount'])
+
     elif opt == 'b':
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
@@ -330,21 +374,24 @@ def format_tables(df, opt):
                     'to_flow_name': 'Flowable',
                     'to_flow_category': 'Context',
                     'to_flow_unit': 'Unit',
-                    'FlowUUID': 'FlowUUID',
                     }
+        if opt_map in {'all', 'fedefl'}:
+            col_dict['FlowUUID'] = 'FlowUUID'
+
     df_mapped = df[list(col_dict.keys())]
     df_mapped = (df_mapped.rename(columns=col_dict)
                           .dropna(subset=['Amount']))
     df_mapped['Location'] = df_mapped['Location'].fillna('US')
     return df_mapped
 
-def get_exchanges(opt_fmt='tables', opt_map='all',
+def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
                   query_fg=True, df_subset=None):
     """
     Load WARM baseline scenario matrix files, reshape tables,
     append 'idx' labels, and apply other transformations before returning
     product (A) and elemental (B) flow exchanges in table or matrix format
     :param opt_fmt: str, {'tables', 'matrices'}
+    :param opt_mixer: str, switch to enable/disable mixer process flow replacements
     :param opt_map: str, {'all','fedefl','useeio'}
     :param query_fg: bool, True calls query_fg_processes
     :param df_subset: pd.DataFrame, see query_fg_processes
@@ -356,11 +403,12 @@ def get_exchanges(opt_fmt='tables', opt_map='all',
     a_raw, b_raw, idx_a, idx_b = map(
         read_olca2_mtx, ['A.csv', 'B.csv', 'index_A.csv', 'index_B.csv'])
 
-    mtx_a, mtx_b = normalize_mtcs(a_raw, b_raw)
-    mtx_a, mtx_b = append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b)
-    mtx_a, mtx_b = populate_mtx_mixer_processes(mtx_a, mtx_b, idx_a, idx_b)
+    idx_a = classify_processes(idx_a)  # assign before populate_mixer_processes
 
-    idx_a = classify_processes(idx_a)  # assign before label_exch_dfs
+    mtx_a, mtx_b = normalize_mtcs(a_raw, b_raw)
+    if opt_mixer == 'pop':
+        mtx_a, mtx_b = populate_mixer_processes(mtx_a, mtx_b, idx_a)
+    mtx_a, mtx_b = append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b)
 
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
@@ -374,7 +422,7 @@ def get_exchanges(opt_fmt='tables', opt_map='all',
         df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
 
     if opt_fmt == 'tables':
-        df_a, df_b = map(format_tables, [df_a, df_b], ['a','b'])
+        df_a, df_b = map(format_tables, [df_a, df_b], ['a','b'], [opt_map, opt_map])
         # df_a = format_tables(df_a, 'a')
         # df_b = format_tables(df_b, 'b')
         # TODO: ditch these if map() works
