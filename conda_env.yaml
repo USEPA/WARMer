@@ -4,7 +4,7 @@ channels:
 dependencies:           # cloned repo [https://github.com/USEPA/WARMer.git] will recognize these upon env activation
     - python=3.9.7      # conda solver runs into irresolvable conflicts for 3.10.0 as of 10/26/2021
     - pip=21.2.4        # must specify else conda returns warning
-    - pandas=1.3.3
+    - pandas=1.4.0
     - numpy=1.21.2
     - spyder            # or any other IDE
 
