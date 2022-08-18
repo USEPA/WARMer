@@ -404,6 +404,8 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
         read_olca2_mtx, ['A.csv', 'B.csv', 'index_A.csv', 'index_B.csv'])
 
     idx_a = classify_processes(idx_a)  # assign before populate_mixer_processes
+    if opt_map in {'all', 'useeio'}:
+        idx_a = classify_processes(idx_a, opt='fgbg')
 
     mtx_a, mtx_b = normalize_mtcs(a_raw, b_raw)
     if opt_mixer == 'pop':
@@ -423,9 +425,6 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
 
     if opt_fmt == 'tables':
         df_a, df_b = map(format_tables, [df_a, df_b], ['a','b'], [opt_map, opt_map])
-        # df_a = format_tables(df_a, 'a')
-        # df_b = format_tables(df_b, 'b')
-        # TODO: ditch these if map() works
         return df_a, df_b
     elif opt_fmt == 'matrices':
         mtx_a_lab, mtx_b_lab = pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b)
@@ -434,62 +433,9 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
 if __name__ == '__main__':
     df_a, df_b = get_exchanges()
 
-    # ### TODO: eliminate everything below this
-    # model_version = None
-    # # model_version = 'm1'
-
-    # file_stub = f'{warm_version}'
-    # if model_version:
-    #     file_stub = file_stub + f'_{model_version}'
-
-    # a_raw, b_raw, idx_a, idx_b = map(
-    #     read_olca2_mtx, ['A.csv', 'B.csv', 'index_A.csv', 'index_B.csv'])
-
-    # idx_a = classify_processes(idx_a)  # assign before merges
-
-    # mtx_a, mtx_b = normalize_mtcs(a_raw, b_raw)
-
-    # mtx_a, mtx_b = append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b)
-
-    # df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
-
-    # df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
-
-    # df_a, df_b = query_fg_processes(df_a, df_b)
-
-    # df_b, idx_b = map_agg(df_b, idx_b)
-
-    # mtx_a_lab, mtx_b_lab = pivot_to_labeled_mtcs(df_a, df_b, idx_a, idx_b)
-
-    # df_a = map_useeio_processes(df_a)
-
-    # ## Sample dataframe export (via .csv filter list)
-    # if model_version == 'm1':
-    #     file_ff = 'model_1_processes.csv'
-    # else:
-    #     file_ff = None
-    # df_a_eg, df_b_eg = query_fg_processes(df_a, df_b, file_ff)
-
-    # # a_eg, b_eg = pivot_to_labeled_mtcs(df_a_eg, df_b_eg, idx_a, idx_b)
-
-    # if model_version:
-    #     writepath = modulepath.parent/'model_build'/'data'
-    #     (format_tables(df_a_eg, 'a')
-    #          .query('Amount != 0')  # drop empty exchanges
-    #          .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
-    #     (format_tables(df_b_eg, 'b')
-    #          .drop(columns='ProcessCategory')
-    #          .query('Amount != 0')  # drop empty exchanges
-    #          .to_csv(writepath/f'{file_stub}_env.csv', index=False))
-    # else:
-    #     writepath = modulepath/'data'/'flowsa_inputs'
-    #     # (format_tables(df_a, 'a')
-    #     #     .to_csv(writepath/f'{file_stub}_tech.csv', index=False))
-    #     (format_tables(df_b, 'b')
-    #         .to_csv(writepath/f'{file_stub}_env.csv', index=False))
-
-    ## Generate processmapping.csv
+    # # Generate processmapping.csv
+    # idx_a = read_olca2_mtx('index_A.csv')
     # newcols = ['MatchCondition','ConversionFactor',
-    #            'TargetListName','TargetProcessName','TargetUnit','LastUpdated']
-    # a_index = a_index.reindex(columns = a_index.columns.tolist() + newcols)
-    # a_index.to_csv(modulepath/'processmapping'/'processmapping.csv', index=False)
+    #             'TargetListName','TargetProcessName','TargetUnit','LastUpdated']
+    # idx_a = idx_a.reindex(columns = idx_a.columns.tolist() + newcols)
+    # idx_a.to_csv(modulepath/'processmapping'/'processmapping.csv', index=False)

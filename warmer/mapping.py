@@ -40,14 +40,10 @@ def map_useeio_processes(df):
     mapping['ConversionFactor'] = mapping['ConversionFactor'].fillna(1)
     mapping_cols = ['TargetProcessName', 'TargetUnit', 'TargetProcessID',
                     'ConversionFactor', 'process ID']
-    df = df.merge(mapping[mapping_cols],
-                  how='left', left_on = ['from_process_ID'],
-                  right_on = ['process ID'])
+    df = df.merge(mapping[mapping_cols], how='left',
+                  left_on = 'from_process_ID', right_on = 'process ID')
     if 'from_process_fgbg' in df.columns:
         criteria = (df['from_process_fgbg'] == 'background_map') & \
-                   (df['TargetProcessName'].notnull())
-    elif 'from_process_class' in df.columns:
-       criteria = (df['from_process_class'] == 'special') & \
                    (df['TargetProcessName'].notnull())
     print(f'mapping {sum(criteria)} processes')
     df.loc[criteria, 'from_process_name'] = df['TargetProcessName']
