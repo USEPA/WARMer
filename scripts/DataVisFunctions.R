@@ -76,28 +76,3 @@ plotByMaterial <- function(df, material, impact, source_mod) {
 
 #' # [later] paste together units from model$Indicators values?
 #' # [later] any value in converting certain string fields to factors?
-
-
-## Using magrittr pipes:
-# disaggregateTotalToDirectAndTier1 <- function(model, indicator) {
-#   sector_map <- setNames(model$Commodities$Name, model$Commodities$Code_Loc)
-#   
-#   # direct sector impacts
-#   df_A_D <- tibble::enframe(model$D[impact,]) %>%
-#     dplyr::rename(impact_per_purchase=value, sector_code=name) %>% 
-#     dplyr::mutate(purchased_commodity = 'Direct') # not a commodity, but for convenience
-#   
-#   # total impacts per Tier 1 purchase by sector
-#   df_A_p <- calculateTotalImpactbyTier1Purchases(model, impact) %>% 
-#     tibble::as_tibble(rownames="purchased_commodity_code") %>%
-#     reshape2::melt(id.vars="purchased_commodity_code",
-#                    variable.name="sector_code", 
-#                    value.name="impact_per_purchase") %>%
-#     dplyr::mutate(purchased_commodity = dplyr::recode(purchased_commodity_code, !!!sector_map))
-#   
-#   # combined tibble 
-#   df_A <- dplyr::bind_rows(df_A_p, df_A_D) %>%
-#     dplyr::mutate(sector = dplyr::recode(sector_code, !!!sector_map))
-#   return(df_A)
-# }
-# ^magrittr::`%>%` pipe namespace issue if migrating to useeior; may need to refactor

@@ -41,7 +41,7 @@ library('useeior')
 # devtools::load_all("./renv/library/R-4.1/x86_64-w64-mingw32/useeior")
 
 # Build model from specs
-configpaths <- file.path("data", c("USEEIO-WARM.yml",
+configpaths <- file.path("data", "m1", c("USEEIO-WARM.yml",
                                    "WARMv15.yml"))
 modelname <- "USEEIO-WARM"
 model <- buildModel(modelname, configpaths)
@@ -57,7 +57,7 @@ source("DataVisFunctions.R")
 impact_vis = "Jobs Supported"
 
 # import WARM results
-df_warm <- read.csv(file.path("data_m1", "WARM_cntb_results.csv")) %>% 
+df_warm <- read.csv(file.path("data", "WARM_cntrb_results.csv")) %>% 
   dplyr::filter(impact == impact_vis) %>%   # filter by impact
   dplyr::select(-impact)                    # then drop impact col
 

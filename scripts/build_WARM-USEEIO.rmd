@@ -13,8 +13,8 @@ output: html_notebook
 # library('useeior')
 
 # Build model from specs
-configpaths <- file.path("data_m1", c("USEEIO-WARM.yml",
-                                      "WARMv15.yml"))
+configpaths <- file.path("data", "m1", c("USEEIO-WARM.yml",
+                                         "WARMv15.yml"))
 modelname <- "USEEIO-WARM"
 model <- buildModel(modelname, configpaths)
 
