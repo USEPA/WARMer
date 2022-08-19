@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     ## FBS input
     model_name = None
-    writepath = modulepath/'flowsa_inputs'
+    writepath = modulepath.parent/'flowsa'
 
     df_a, df_b = get_exchanges(opt_map=None)
 
