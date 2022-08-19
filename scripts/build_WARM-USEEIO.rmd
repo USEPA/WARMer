@@ -13,8 +13,8 @@ output: html_notebook
 # library('useeior')
 
 # Build model from specs
-configpaths <- file.path("data", c("USEEIO-WARM.yml",
-                                   "WARMv15.yml"))
+configpaths <- file.path("data_m1", c("USEEIO-WARM.yml",
+                                      "WARMv15.yml"))
 modelname <- "USEEIO-WARM"
 model <- buildModel(modelname, configpaths)
 
@@ -23,7 +23,7 @@ writeModeltoXLSX(model, file.path(rappdirs::user_data_dir(),
 printValidationResults(model)
 
 # # Source demand vector from csv
-# demand_path <- file.path("data", "material_demand.csv")
+# demand_path <- file.path("data_m1", "material_demand.csv")
 # y <- extractAndFormatDemandVector(demand_path, 'Grains', model)
 
 # Or create demand vector in code

@@ -1,5 +1,0 @@
-git+https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List.git@develop#egg=fedelemflowlist
-git+https://github.com/USEPA/esupy.git@develop#egg=esupy
-olca-ipc==0.0.10    # latest version 0.0.11 incompatible w/ FEDEFL
-pandas>=1.4
-numpy>=1.21

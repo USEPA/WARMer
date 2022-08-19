@@ -3,5 +3,6 @@
 .RData
 .Ruserdata
 .Rprofile
+*.png
 *.html
 renv/

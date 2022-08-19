@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     ## FBS input
     model_name = None
-    writepath = modulepath/'data'/'flowsa_inputs'
+    writepath = modulepath/'flowsa_inputs'
 
     df_a, df_b = get_exchanges(opt_map=None)
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     ## Model 1
     model_name = 'm1'
-    df_m1_prcs = pd.read_csv(modulepath/'data'/'model_1_processes.csv')
+    df_m1_prcs = pd.read_csv(modulepath/'model_1_processes.csv')
 
     df_a, df_b = get_exchanges(df_subset=df_m1_prcs, opt_mixer=None)
 

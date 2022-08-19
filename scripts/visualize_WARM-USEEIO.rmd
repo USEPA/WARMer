@@ -12,14 +12,14 @@ output: html_notebook
 # renv::install('remotes')
 # remotes::install_github("USEPA/useeior@hybridization")
   # try useeior:::printValidationResults(model) or useeior:::hybridizeAMatrix to check for correct install
-# renv::snapshot(lockfile="WARMer.lock")
+# renv::snapshot(lockfile="WARM-USEEIO.lock")
 
 ## Populate an empty env w/ packages from existing lockfile
 # renv::activate()
-# renv::restore(lockfile="WARMer.lock")
+# renv::restore(lockfile="WARM-USEEIO.lock")
 
 ## Status checks
-# renv::status(lockfile = "WARMer.lock")
+# renv::status(lockfile = "WARM-USEEIO.lock")
 # pkgs <- as.data.frame(installed.packages())
 # .libPaths()
 
@@ -27,7 +27,7 @@ output: html_notebook
 # renv::purge("useeior")  # purge old copy from cache
 # renv::remove("useeior")
 # remotes::install_github("USEPA/useeior@WIO")  # reinstall
-# renv::snapshot(lockfile="WARMer.lock")  # update the lockfile
+# renv::snapshot(lockfile="WARM-USEEIO.lock")  # update the lockfile
 
 ## Wipe current renv & purge pkg cache
 # renv::deactivate()
@@ -57,7 +57,7 @@ source("DataVisFunctions.R")
 impact_vis = "Jobs Supported"
 
 # import WARM results
-df_warm <- read.csv(file.path("data", "WARMv15_cntb_results.csv")) %>% 
+df_warm <- read.csv(file.path("data_m1", "WARM_cntb_results.csv")) %>% 
   dplyr::filter(impact == impact_vis) %>%   # filter by impact
   dplyr::select(-impact)                    # then drop impact col
 
