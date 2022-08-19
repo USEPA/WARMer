@@ -1,7 +1,23 @@
 # WARMer
 [![Python CI/CD tests](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml/badge.svg)](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml)
 
-WARMer is used to process data from WARM 
+WARMer is used to process data from the [OpenLCA version of WARM ](https://www.epa.gov/warm/versions-waste-reduction-model-warm#15)
+
+## Installation
+To connect to a live OpenLCA database, the extra `olca` dependency must be installed:  
+```
+python -m pip install warmer[olca]
+```
+
+To perform [fedelem](https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List) flow mapping, the extra `fedelem_map` must be installed:  
+```
+python -m pip install warmer[fedelem_map]
+```
+
+To install everything at once, use the following command:  
+```
+python -m pip install SomePackage[olca, fedelem_map]
+```
 
 
 ## Disclaimer
