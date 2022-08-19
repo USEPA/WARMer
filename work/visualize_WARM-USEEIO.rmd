@@ -41,6 +41,7 @@ library('useeior')
 # devtools::load_all("./renv/library/R-4.1/x86_64-w64-mingw32/useeior")
 
 # Build model from specs
+# TODO: alter this to point to HIO/useeior/
 configpaths <- file.path("data", "m1", c("USEEIO-WARM.yml",
                                    "WARMv15.yml"))
 modelname <- "USEEIO-WARM"
