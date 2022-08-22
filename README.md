@@ -1,9 +1,18 @@
 # WARMer
 [![Python CI/CD tests](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml/badge.svg)](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml)
 
-WARMer is used to process data from the [OpenLCA version of WARM ](https://www.epa.gov/warm/versions-waste-reduction-model-warm#15)
+The **WARM** transform**er** (**WARMer**) is a Python package to process the [USEPA Waste Reduction Model (WARM)](https://www.epa.gov/warm/versions-waste-reduction-model-warm#15) to make the data available in tabular and matrix formats. 
+
+Current status: **Alpha**
 
 ## Installation
+Requires Python >= 3.8 with pip.
+
+A simple installation with basic functionality, assuming this repository is downloaded or cloned
+```
+python -m pip install warmer
+```
+
 To connect to a live OpenLCA database, the extra `olca` dependency must be installed:  
 ```
 python -m pip install warmer[olca]
