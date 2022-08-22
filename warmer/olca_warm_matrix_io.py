@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from mapping import map_warmer_envflows, map_useeio_processes
+from warmer.mapping import map_warmer_envflows, map_useeio_processes
 
 modulepath = Path(__file__).parent
 warm_version = 'WARMv15'

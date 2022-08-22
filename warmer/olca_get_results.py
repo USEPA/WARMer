@@ -9,7 +9,7 @@ from pathlib import Path
 import olca
 import pandas as pd
 
-from olca_warm_matrix_io import classify_processes
+from warmer.olca_warm_matrix_io import classify_processes
 
 modulepath = Path(__file__).parent
 datapath = modulepath/'data'
