@@ -359,6 +359,9 @@ def format_tables(df, opt, opt_map):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
+        # Drop all 0 exchanges prior to setting diagonal to 0
+        df = df.query('Amount != 0').reset_index(drop=True)
+        
         # Find and set mtx_a diagonal exchanges to 0, then invert all signs
         df['Amount'] = -1 * np.where(
             ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
