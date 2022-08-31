@@ -6,6 +6,7 @@ Last Updated: 2022.07.13
 import pickle
 from pathlib import Path
 
+import numpy as np
 import olca
 import pandas as pd
 
@@ -33,6 +34,7 @@ def get_dump_load(data_type, get=False, client=None, get_opt='all',
         data = list(
                 getattr(client, f'get_{get_opt}')(
                     getattr(olca, data_type)))
+    # TODO: store/access via appdirs
     filename = f'WARMv15_olca_{data_type.lower()}_{get_opt}.pickle'
     if load:
         with open(datapath/filename, 'rb') as f:
@@ -40,6 +42,7 @@ def get_dump_load(data_type, get=False, client=None, get_opt='all',
     if dump:
         with open(datapath/filename, 'wb') as f:
             pickle.dump(data, f)
+
     # Note: pd.testing.assert_frame_equal() is not True for otherwise identical
     # df's w/ cols of olca objects b/c hashes are re-assigned when loaded/generated
     return data
@@ -78,12 +81,26 @@ def calc_lcia_cntbs(id_prodsys, client, impact='WARM (MTCO2E)'):
 
 def unpack_dict_col(df, col):
     """
-    Convert df column of single-level dictionaries to multiple columns
+    Convert df column of single-level dictionaries to multiple columns;
+    if list of dictionaries, flatten or explode first
     :param df: pandas dataframe
     :param col: str, target column header
     """
+    is_list_element = df[col].apply(lambda x: isinstance(x, list))
+    if all(is_list_element):
+        if all(df[col].map(len)==1):
+            df[col] = df[col].apply(lambda x: x[0])
+        else:
+            # df[col].map(len).value_counts()
+            print(f'INFO: {col} list elements have !=1 elements each')
+            df = df.explode(col).reset_index(drop=True)
+    elif any(is_list_element):
+        print('Mixture of list and non-list elements; inspect df')
+        return None
+
     df = pd.concat([df.drop(columns=col),
-                    pd.json_normalize(df[col], sep='_')],
+                    (pd.json_normalize(df[col], sep='_') #, record_prefix=col)
+                       .add_prefix(f'{col}_'))],
                    axis='columns')
 
     ## Two dict flattening approaches:
@@ -102,6 +119,57 @@ if __name__ == "__main__":  # revert to "==" later
     # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
     client = olca.Client(8080)
 
+    # %% Impact Methods & Factors
+    impact_methods = get_dump_load('ImpactMethod', client=client,
+                                   get=True, get_opt='all')
+    df_imth = (pd.DataFrame([x.to_json() for x in impact_methods])
+                 .drop(columns=['@id', '@type', 'lastChange'])
+                 .pipe(unpack_dict_col, 'impactCategories')
+                 .filter(['impactCategories_@id', 'name', 'description'])
+                 .rename(columns={'impactCategories_@id': '@id',
+                                  'name': 'method_name',
+                                  'description': 'method_description'}))
+    # 'ImpactFactor' raises exception; using 'ImpactCategory' instead:
+    impact_cats = get_dump_load('ImpactCategory', client=client,
+                                get=True, get_opt='all')
+    df_icat = (pd.DataFrame([x.to_json() for x in impact_cats])
+                 .pipe(unpack_dict_col, 'impactFactors')
+                 .replace('', np.nan)
+                 .dropna(axis='columns', how='all')
+                 # fix WARMv15 economic flow units: USD 2002 should be 2007
+                  .replace('USD 2002', 'USD 2007')
+                     # TODO: reinstall fedefl@develop to accomodate USD 2007
+                 .merge(df_imth, how='right', on='@id')
+                 .query('method_name != "WARM (MTCE)"'))  # units issue
+
+    dict_lciafmt_cols = {
+        'method_name': 'Method',
+        'name': 'Indicator',    # only valid when excluding MTCE method
+        'referenceUnitName': 'Indicator unit',
+        'impactFactors_flow_name': 'Flowable',
+        'impactFactors_flow_@id': 'Flow UUID',
+        'impactFactors_flow_categoryPath': 'Context',
+        'impactFactors_value': 'Characterization Factor',
+        'impactFactors_unit_name': 'Unit'}
+
+    df_icat_expt = (df_icat.filter(dict_lciafmt_cols.keys())
+                           .rename(columns=dict_lciafmt_cols)
+                           .to_csv(datapath/'WARMv15_lcia_methods.csv',
+                                   index=False))
+
+
+    # from warmer.mapping import map_warmer_envflows
+    # field_dict = {'SourceName': '',
+    #               'FlowableName': 'impactFactors_flow_name',
+    #               'FlowableUnit': 'impactFactors_unit_name',
+    #               'FlowableContext': 'impactFactors_flow_categoryPath',
+    #               'FlowableQuantity': 'impactFactors_value',
+    #               'UUID': 'impactFactors_flow_@id'}
+    # temp = map_warmer_envflows(df_icat, field_dict=field_dict)
+        # FIXME: returns `TypeError: unhashable type: 'list'`
+
+
+    # %% LCIA Contribution Trees script
     # Get/load WARMv15 olca db process data:
     # processes = get_dump_load('Process', client=client, get=True, get_opt='descriptors', dump=True)
     processes = get_dump_load('Process', get_opt='descriptors', load=True)
@@ -109,8 +177,8 @@ if __name__ == "__main__":  # revert to "==" later
     # Choose waste treatment processes for which to generate product systems
     prcs_keep = (pd.read_csv(datapath/'model_1_processes.csv',
                              header=None, usecols=[1])
-                    .squeeze()
-                    .to_list())
+                   .squeeze()
+                   .to_list())
     df_prcs = (pd.DataFrame([p.to_json() for p in processes])
                  .query('name in @prcs_keep')
                  .reset_index(drop=True))
@@ -142,6 +210,7 @@ if __name__ == "__main__":  # revert to "==" later
                  .explode('result')
                  .reset_index(drop=True)
                  .pipe(unpack_dict_col, 'result')
+                 # TODO: affirm subsequent methods work w/ new col name prefix
                  .drop(columns=['@type', 'share', 'rest', 'item_@type']))
                  # .filter(regex='.*(?<!type)$'))  # drop '@type' cols
                  # .filter(items=['amount','unit','name'])  # [later] decide what we want
@@ -154,7 +223,7 @@ if __name__ == "__main__":  # revert to "==" later
     df_lcia_hasDeep = df_lcia.query('prodsys_name in @mask')
 
 
-    # client.update(olca.ProductSystem, df_prcs['@id'][1])  #??? what is a model object
+    # client.update(olca.ProductSystem, df_prcs['@id'][1])
     # raise SystemExit(0)  # stop script execution
 
     # result_dict = result.to_json()
@@ -164,7 +233,7 @@ if __name__ == "__main__":  # revert to "==" later
     #               .pipe(unpack_dict_col, 'flow'))
 
 
-
+    # %% [old] Inspection & Flow + Param retreival
     # for p in processes[:5]: print(f"{p.name} - {p.flow_type}")
     # f = client.get('Flow', 'Carbon dioxide')
     # temp = get_dump_load('ProductSystem', client=client, get=True)

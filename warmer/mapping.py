@@ -13,19 +13,20 @@ from esupy.mapping import apply_flow_mapping
 
 modulepath = Path(__file__).parent
 
-def map_warmer_envflows(df):
+def map_warmer_envflows(df, field_dict=None):
     """Update elementary flow data from FEDEFL."""
-    # Align warmer fields with mapping, value represents field in target df
-    field_dict = {'SourceName': '',
-                  'FlowableName':'to_flow_name',
-                  'FlowableUnit':'to_flow_unit',
-                  'FlowableContext':'to_flow_category',
-                  'FlowableQuantity':'Amount',
-                  'UUID':'FlowUUID'}
+    if field_dict is None:
+        # Align warmer fields with mapping, value represents field in target df
+        field_dict = {'SourceName': '',
+                      'FlowableName':'to_flow_name',
+                      'FlowableUnit':'to_flow_unit',
+                      'FlowableContext':'to_flow_category',
+                      'FlowableQuantity':'Amount',
+                      'UUID':'FlowUUID'}
 
     df = apply_flow_mapping(df, 'WARM', flow_type='ELEMENTARY_FLOW',
-                            keep_unmapped_rows=True, field_dict = field_dict,
-                            ignore_source_name = True)
+                            keep_unmapped_rows=True, field_dict=field_dict,
+                            ignore_source_name=True)
 
     # Mapping data for economic flows (e.g. 'Jobs') are marked with 'n.a.'
     # for some fields. Replace those with None.
