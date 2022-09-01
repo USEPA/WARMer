@@ -359,9 +359,6 @@ def format_tables(df, opt, opt_map):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
-        # Drop all 0 exchanges prior to setting diagonal to 0
-        df = df.query('Amount != 0').reset_index(drop=True)
-        
         # Find and set mtx_a diagonal exchanges to 0, then invert all signs
         df['Amount'] = -1 * np.where(
             ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
@@ -381,10 +378,10 @@ def format_tables(df, opt, opt_map):
         if opt_map in {'all', 'fedefl'}:
             col_dict['FlowUUID'] = 'FlowUUID'
 
-    df_mapped = df[list(col_dict.keys())]
-    df_mapped = (df_mapped.rename(columns=col_dict)
-                          .dropna(subset=['Amount']))
-    df_mapped['Location'] = df_mapped['Location'].fillna('US')
+    df_mapped = (df.filter(col_dict.keys())
+                   .rename(columns=col_dict)
+                   .dropna(subset=['Amount'])
+                   .fillna({'Location': 'US'}))
     return df_mapped
 
 def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
@@ -418,14 +415,12 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
 
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
-    df_a, df_b = query_fg_processes(df_a, df_b)
-
+    if query_fg:
+        df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
     if opt_map in {'all', 'useeio'}:
         df_a = map_processes(df_a, mapping)
     if opt_map in {'all', 'fedefl'}:
         df_b, idx_b = map_agg(df_b, idx_b)
-    if query_fg:
-        df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
 
     if opt_fmt == 'tables':
         df_a, df_b = map(format_tables, [df_a, df_b], ['a','b'], [opt_map, opt_map])
