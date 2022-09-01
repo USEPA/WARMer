@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from warmer.mapping import map_warmer_envflows, map_useeio_processes
+import warmer.controls as controls
 
 modulepath = Path(__file__).parent
 warm_version = 'WARMv15'
@@ -418,6 +419,9 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
     df_a, df_b = query_fg_processes(df_a, df_b)
+
+    # Insert controls before mapping
+    df_a, df_b = controls.control_displaced_electricity_emissions(df_a, df_b)
 
     if opt_map in {'all', 'useeio'}:
         df_a = map_useeio_processes(df_a)
