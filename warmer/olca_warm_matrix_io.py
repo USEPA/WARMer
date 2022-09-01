@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from warmer.mapping import map_warmer_envflows, map_useeio_processes
+from warmer.mapping import map_warmer_envflows, map_processes
 
 modulepath = Path(__file__).parent
 warm_version = 'WARMv15'
@@ -388,7 +388,7 @@ def format_tables(df, opt, opt_map):
     return df_mapped
 
 def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
-                  query_fg=True, df_subset=None):
+                  query_fg=True, df_subset=None, mapping=None):
     """
     Load WARM baseline scenario matrix files, reshape tables,
     append 'idx' labels, and apply other transformations before returning
@@ -398,6 +398,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     :param opt_map: str, {'all','fedefl','useeio'}
     :param query_fg: bool, True calls query_fg_processes
     :param df_subset: pd.DataFrame, see query_fg_processes
+    :param mapping: pd.DataFrame, process mapping file
     """
     if opt_fmt not in {'tables', 'matrices'}:
         print(f'"{opt_fmt}" not a valid format option')
@@ -420,7 +421,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     df_a, df_b = query_fg_processes(df_a, df_b)
 
     if opt_map in {'all', 'useeio'}:
-        df_a = map_useeio_processes(df_a)
+        df_a = map_processes(df_a, mapping)
     if opt_map in {'all', 'fedefl'}:
         df_b, idx_b = map_agg(df_b, idx_b)
     if query_fg:
