@@ -362,7 +362,7 @@ def format_tables(df, opt, opt_map):
                     }
         # Drop all 0 exchanges prior to setting diagonal to 0
         df = df.query('Amount != 0').reset_index(drop=True)
-        
+
         # Find and set mtx_a diagonal exchanges to 0, then invert all signs
         df['Amount'] = -1 * np.where(
             ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
@@ -399,7 +399,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     :param opt_map: str, {'all','fedefl','useeio'}
     :param query_fg: bool, True calls query_fg_processes
     :param df_subset: pd.DataFrame, see query_fg_processes
-    :param controls: list
+    :param controls: list, subset of warmer.controls.controls_dict
     """
     if opt_fmt not in {'tables', 'matrices'}:
         print(f'"{opt_fmt}" not a valid format option')
@@ -419,7 +419,8 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
 
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
-    df_a, df_b = query_fg_processes(df_a, df_b)
+
+    controls = ['electricity']
 
     # Insert controls before mapping
     if not controls:
@@ -431,6 +432,9 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
         else:
             print(f'control {c} does not exist.')
 
+
+    # df_a, df_b = map(lambda x: x.query('Amount != 0'), (df_a, df_b))
+    # return df_a, df_b
     if opt_map in {'all', 'useeio'}:
         df_a = map_useeio_processes(df_a)
     if opt_map in {'all', 'fedefl'}:
