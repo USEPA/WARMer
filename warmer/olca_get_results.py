@@ -115,6 +115,19 @@ def unpack_dict_col(df, col):
     # pd.testing.assert_frame_equal(df2, df)   # False; duplicate '@type' col preserved
     return df
 
+
+def convert_lcia_units(df, from_unit, to_unit, conv_factor):
+    """Convert units in the indicators based on conversion factor."""
+    df['impactFactors_value'] = np.where(
+        df['impactFactors_unit_name'] == from_unit,
+        df['impactFactors_value'] * conv_factor,
+        df['impactFactors_value'])
+
+    df['impactFactors_unit_name'] = np.where(
+        df['impactFactors_unit_name'] == from_unit, to_unit,
+        df['impactFactors_unit_name'])
+    return df
+
 if __name__ == "__main__":  # revert to "==" later
     # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
     client = olca.Client(8080)
@@ -137,10 +150,20 @@ if __name__ == "__main__":  # revert to "==" later
                  .replace('', np.nan)
                  .dropna(axis='columns', how='all')
                  # fix WARMv15 economic flow units: USD 2002 should be 2007
-                  .replace('USD 2002', 'USD 2007')
+                 .replace('USD 2002', 'USD 2007')
                      # TODO: reinstall fedefl@develop to accomodate USD 2007
                  .merge(df_imth, how='right', on='@id')
                  .query('method_name != "WARM (MTCE)"'))  # units issue
+
+    # Replace incorrect category description for Labor Hours
+    df_icat.loc[df_icat['method_name'] == 'WARM (Labor Hours)',
+                ('name', 'referenceUnitName')] = ('Labor Hours', 'Labor Hours')
+
+    df_icat['method_name'] = 'WARMv15'
+
+    # convert units to align with flow mapping used by lcia formatter
+    df_icat = convert_lcia_units(df_icat, 't', 'kg', .001)
+    df_icat = convert_lcia_units(df_icat, 'btu', 'MJ', 947.8)
 
     dict_lciafmt_cols = {
         'method_name': 'Method',
