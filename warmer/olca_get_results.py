@@ -5,6 +5,7 @@ Last Updated: 2022.07.13
 """
 import pickle
 from pathlib import Path
+from requests.exceptions import ConnectionError
 
 import numpy as np
 import olca
@@ -15,13 +16,24 @@ from warmer.olca_warm_matrix_io import classify_processes
 modulepath = Path(__file__).parent
 datapath = modulepath/'data'
 
+# Must have openLCA running and the WARMv15 database open to connect client
+client = olca.Client(8080)
+# If using a different database, find and adjust the 4-digit IPC Server id
+    # via openLCA > Tools > Developer Tools > IPC Server
+try:
+    client.find(olca.FlowProperty, 'Mass')
+except ConnectionError:
+    print('ERROR: Unable to access olca.Client \n  '
+          'Please ensure openLCA is running and the WARMv15 database is open')
+
+
 def get_dump_load(data_type, get=False, client=None, get_opt='all',
                   dump=False, load=False):
     """
     Get olca data objects from anfrom pathlib import Path open olca.Client() object, dump them to a pickle,
     and/or load them from a pickle via olca.<data_type> attribute strings
     :param data_type: str, olca schema attribute
-    :param client: object, connected olca.Client()
+    :param client: object, connected olca.Client(), needed for get but not load
     :param get: bool, use client.get_{get_opt} method to retreive data?
     :param get_opt: str, 'all' (default), or 'descriptors' for less info
     :param dump: bool, dump data to pickle?
@@ -47,7 +59,7 @@ def get_dump_load(data_type, get=False, client=None, get_opt='all',
     # df's w/ cols of olca objects b/c hashes are re-assigned when loaded/generated
     return data
 
-def calc_lcia_cntbs(id_prodsys, client, impact='WARM (MTCO2E)'):
+def calc_lcia_cntbs(id_prodsys, client=client, impact='WARM (MTCO2E)'):
     """
     For a given product system, calculate LCIA results (default imapct GHGs) and
     return a list of process contributions
@@ -115,7 +127,6 @@ def unpack_dict_col(df, col):
     # pd.testing.assert_frame_equal(df2, df)   # False; duplicate '@type' col preserved
     return df
 
-
 def convert_lcia_units(df, from_unit, to_unit, conv_factor):
     """Convert units in the indicators based on conversion factor."""
     df['impactFactors_value'] = np.where(
@@ -128,11 +139,10 @@ def convert_lcia_units(df, from_unit, to_unit, conv_factor):
         df['impactFactors_unit_name'])
     return df
 
-if __name__ == "__main__":  # revert to "==" later
-    # Match to IPC Server value: in openLCA -> Tools > Developer Tools > IPC Server
-    client = olca.Client(8080)
-
-    # %% Impact Methods & Factors
+def get_impact_factors():
+    """
+    Extract and combine information on impact methods, categories, and factors
+    """
     impact_methods = get_dump_load('ImpactMethod', client=client,
                                    get=True, get_opt='all')
     df_imth = (pd.DataFrame([x.to_json() for x in impact_methods])
@@ -168,6 +178,21 @@ if __name__ == "__main__":  # revert to "==" later
     df_icat = convert_lcia_units(df_icat, 't', 'kg', .001)
     df_icat = convert_lcia_units(df_icat, 'btu', 'MJ', 947.8)
 
+    ## FEDEFL mapping draft:
+    # from warmer.mapping import map_warmer_envflows
+    # field_dict = {'SourceName': '',
+    #               'FlowableName': 'impactFactors_flow_name',
+    #               'FlowableUnit': 'impactFactors_unit_name',
+    #               'FlowableContext': 'impactFactors_flow_categoryPath',
+    #               'FlowableQuantity': 'impactFactors_value',
+    #               'UUID': 'impactFactors_flow_@id'}
+    # temp = map_warmer_envflows(df_icat, field_dict=field_dict)
+        # FIXME: returns `TypeError: unhashable type: 'list'`
+    return df_icat
+
+
+if __name__ == "__main__":
+    # %% Get Impact Methods & Factors
     dict_lciafmt_cols = {
         'method_name': 'Method',
         'name': 'Indicator',    # only valid when excluding MTCE method
@@ -178,22 +203,11 @@ if __name__ == "__main__":  # revert to "==" later
         'impactFactors_value': 'Characterization Factor',
         'impactFactors_unit_name': 'Unit'}
 
+    df_icat = get_impact_factors()
     df_icat_expt = (df_icat.filter(dict_lciafmt_cols.keys())
                            .rename(columns=dict_lciafmt_cols)
                            .to_csv(datapath/'WARMv15_lcia_methods.csv',
                                    index=False))
-
-
-    # from warmer.mapping import map_warmer_envflows
-    # field_dict = {'SourceName': '',
-    #               'FlowableName': 'impactFactors_flow_name',
-    #               'FlowableUnit': 'impactFactors_unit_name',
-    #               'FlowableContext': 'impactFactors_flow_categoryPath',
-    #               'FlowableQuantity': 'impactFactors_value',
-    #               'UUID': 'impactFactors_flow_@id'}
-    # temp = map_warmer_envflows(df_icat, field_dict=field_dict)
-        # FIXME: returns `TypeError: unhashable type: 'list'`
-
 
     # %% LCIA Contribution Trees script
     # Get/load WARMv15 olca db process data:
@@ -229,7 +243,7 @@ if __name__ == "__main__":  # revert to "==" later
                  .reset_index(drop=True))
 
     # Iterate over prod-sys's to calcualte and aggregate process contributions
-    lcia_cntb = [calc_lcia_cntbs(p, client) for p in df_psys['@id']]
+    lcia_cntb = [calc_lcia_cntbs(p) for p in df_psys['@id']]
     lcia_dict = [[r.to_json() for r in psys] for psys in lcia_cntb]
     df_lcia = (pd.DataFrame({'prodsys_name': df_psys['name'],
                             'result': lcia_dict})
