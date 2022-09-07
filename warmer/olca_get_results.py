@@ -152,12 +152,15 @@ if __name__ == "__main__":  # revert to "==" later
                  # fix WARMv15 economic flow units: USD 2002 should be 2007
                  .replace('USD 2002', 'USD 2007')
                      # TODO: reinstall fedefl@develop to accomodate USD 2007
-                 .merge(df_imth, how='right', on='@id')
-                 .query('method_name != "WARM (MTCE)"'))  # units issue
+                 .merge(df_imth, how='right', on='@id'))
 
     # Replace incorrect category description for Labor Hours
     df_icat.loc[df_icat['method_name'] == 'WARM (Labor Hours)',
                 ('name', 'referenceUnitName')] = ('Labor Hours', 'Labor Hours')
+
+    # Replace incorrect units for MTCE
+    df_icat.loc[df_icat['method_name'] == 'WARM (MTCE)',
+                ('name', 'referenceUnitName')] = ('GHGs (MTCE)', 'MTCE')
 
     df_icat['method_name'] = 'WARMv15'
 
