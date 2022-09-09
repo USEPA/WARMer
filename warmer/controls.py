@@ -15,21 +15,20 @@ def control_displaced_electricity_emissions(df_a, df_b):
     e_gen = 'Electricity generation, at grid, National'
     ghg_u = 'GHGs, unspecified'
 
-    # TODO: derive 1.376E+03 kWh/MTCO2E factor from e_gen elementary flows
-        # plus factors from new olca_get_results.get_impact_factors fxn
+    ## TODO: derive 1.376E+03 kWh/MTCO2E factor from e_gen elementary flows
+    # plus factors from new olca_get_results.get_impact_factors fxn
     # df_ghgs_to_e = df_b.query('from_process_name == @e_gen and '
     #                           'Amount != 0')
 
     # For combustion processes w/ a "GHGs, unspecified" output flow and no
     # elec. output (avoided product), substitute the former for the latter
-    # NOTE: all elec. gen. flows are given as inputs w/i the olca mtx exports
     df_b_e = df_b.query('from_process_name.str.contains("combustion") and '
                         'to_flow_name == @ghg_u and '
                         # 'to_flow_name == "GHGs, unspecified"'
                         # 'Amount < 0'
                         'Amount != 0')
     prcs_ghg_u = set(df_b_e['from_process_ID'])
-
+    # NOTE: elec. gen. outputs are given as negative inputs w/i olca mtx exports
     df_a_e = df_a.query('from_process_name == @e_gen and '
                         'Amount != 0')
     prcs_e_gen = set(df_a_e['to_process_ID'])
@@ -39,9 +38,9 @@ def control_displaced_electricity_emissions(df_a, df_b):
                            'Amount != 0')
     prcs_target = set(df_target['to_process_ID'])
 
+    ## TODO: clarify sign handling here and in olca_warm_matrix_io
     # Construct new e_gen exchanges for target processes & concat into df_a
     # Must invert sign when converting output flow to avoided input
-    # TODO: clarify sign handling here and in olca_warm_matrix_io
     flows_e = dict(zip(df_b_e['from_process_ID'],
                        df_b_e['Amount']*1376*-1))
 
@@ -61,10 +60,10 @@ def control_displaced_electricity_emissions(df_a, df_b):
     df_elec['Amount'] = df_elec['to_process_ID'].map(flows_e)
     df_a = pd.concat([df_a, df_elec])
 
-    # Remove "GHGs, unspecified" and "Energy, unspecified" (avoided consumption)
-    # from target processes
+    # Drop "GHGs, unspecified" and "Energy, unspecified" (avoided consumption)
+    # flows from target processes
     unspec = set([ghg_u, 'Energy, unspecified'])
-    df_b = df_b.query('not (from_process_ID in @prcs_ghg_u and '
+    df_b = df_b.query('not (from_process_ID in @prcs_target and '
                       'to_flow_name in @unspec)')
     return df_a, df_b
 
@@ -86,6 +85,6 @@ def control_avoided_fertilizer_emissions(df_a, df_b):
     b = b.query('Amount < 0')
     df_b = df_b.drop(b.index)
 
-    # TODO Add negative fertilizer output as avoided product
+    ## TODO Add negative fertilizer output as avoided product
 
     return df_a, df_b
