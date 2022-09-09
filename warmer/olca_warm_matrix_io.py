@@ -92,7 +92,7 @@ def populate_mixer_processes(mtx_a, mtx_b, idx_a):
     # idx_a.process_name[mixers.astype(bool)]  # check idcs & process_name
 
     y = np.diag(mixers)
-    mtx_b_pop = (mtx_b @ mtx_a @ y) + mtx_b  # '@' equivalent to np.matmul()
+    mtx_b_pop = -1*(mtx_b @ mtx_a @ y) + mtx_b  # '@' equivalent to np.matmul()
 
 
     mtx_a_mix = mtx_a * mixers  # multiply mtx_a columns by mixers elements {0, 1}
@@ -420,9 +420,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
 
-    controls = ['electricity']
-
-    # Insert controls before mapping
+    # Call elementary and/or product flow controls before mapping
     if not controls:
         controls = []
     for c in controls:
@@ -432,9 +430,6 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
         else:
             print(f'control {c} does not exist.')
 
-
-    # df_a, df_b = map(lambda x: x.query('Amount != 0'), (df_a, df_b))
-    # return df_a, df_b
     if opt_map in {'all', 'useeio'}:
         df_a = map_useeio_processes(df_a)
     if opt_map in {'all', 'fedefl'}:
