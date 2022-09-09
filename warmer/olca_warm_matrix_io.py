@@ -80,20 +80,28 @@ def normalize_mtcs(mtx_a, mtx_b):
 def populate_mixer_processes(mtx_a, mtx_b, idx_a):
     """
     Repopulate foreground (fg) "mixer" processes in A and B with sums of the
-    tier-1 purchases and elementary flows of their constituent (fg) processes.
-    WARMv15 mixer processes are identified as those that lack elementary flows.
+    tier-1 purchases and elementary flows of their constituent processes.
+    WARMv15 mixer processes are identified as those fg processes that lack
+    elementary flows and obtain inputs from >=2 other fg processes.
     :param mtx_a: pd.DataFrame, unlabeled A-matrix
     :param mtx_b: pd.DataFrame, unlabeled b-matrix
     :param idx_a: pd.DataFrame, labels for A-matrix rows & cols, B-matrix cols
     """
-    zero_flows = np.sum(np.abs(mtx_b), axis=0) == 0
-    fg_prcs = idx_a['process_class'].eq('waste treatment pathway').to_numpy()
-    mixers = np.multiply(zero_flows, fg_prcs).astype(int)
-    # idx_a.process_name[mixers.astype(bool)]  # check idcs & process_name
+    all_zero_elem_flows = np.sum(np.abs(mtx_b), axis=0) == 0
+    is_fg_prcs = idx_a['process_class'].eq('waste treatment pathway').to_numpy()
+    ids_fg = idx_a.loc[is_fg_prcs, 'process_ID']
+    mtx_a_diag_zero = mtx_a.copy()  # substitute 0 for 1 in diagonal elements
+    np.fill_diagonal(mtx_a_diag_zero, 0)  # note: in-place operation
+    mtx_a_diag_zero = append_mtx_IDs(mtx_a_diag_zero, idx_a)
+    has_fg_inputs = (mtx_a_diag_zero.query('from_process_ID in @ids_fg')
+                                    .sum(axis=0, numeric_only=True)
+                                    .ne(0)  # not equal
+                                    .to_numpy())
+    mixers = (all_zero_elem_flows * is_fg_prcs * has_fg_inputs).astype(int)
+    # temp = idx_a.process_name[mixers.astype(bool)]  # check idcs & process_name
 
     y = np.diag(mixers)
     mtx_b_pop = -1*(mtx_b @ mtx_a @ y) + mtx_b  # '@' equivalent to np.matmul()
-
 
     mtx_a_mix = mtx_a * mixers  # multiply mtx_a columns by mixers elements {0, 1}
     mtx_a_pop = (mtx_a @ mtx_a_mix) + mtx_a
@@ -119,7 +127,7 @@ def populate_mixer_processes(mtx_a, mtx_b, idx_a):
     #     np.where(cmpr_cols[:,0] != cmpr_cols[:,1])
     return mtx_a_pop, mtx_b_pop
 
-def append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b):
+def append_mtx_IDs(mtx_a, idx_a, mtx_b=None, idx_b=None):
     """
     Append process_ID & flow_ID values to rows & columns of matrices
     based on order of entries in each matrix and index df (and thereby file)
@@ -128,13 +136,17 @@ def append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b):
     :param idx_a: pd.DataFrame, labels for A-matrix rows & cols, B-matrix cols
     :param idx_b: pd.DataFrame, labels for B-matrix rows
     """
-    mtx_a, mtx_b = map(pd.DataFrame, [mtx_a, mtx_b])
+    mtx_a = pd.DataFrame(mtx_a)
     mtx_a.columns = idx_a['process_ID']
     mtx_a.insert(loc=0, column='from_process_ID', value=idx_a['process_ID'])
 
-    mtx_b.columns = idx_a['process_ID']  # i.e., why this fxn needs all 4 df's
-    mtx_b.insert(loc=0, column='to_flow_ID', value=idx_b['flow_ID'])
-    return mtx_a, mtx_b
+    if mtx_b is not None and idx_b is not None:
+        mtx_b = pd.DataFrame(mtx_b)
+        mtx_b.columns = idx_a['process_ID']  # i.e., why this fxn needs all 4 df's
+        mtx_b.insert(loc=0, column='to_flow_ID', value=idx_b['flow_ID'])
+        return mtx_a, mtx_b
+    else:
+        return mtx_a
 
 def melt_mtx(mtx_i, opt):
     """
@@ -360,9 +372,6 @@ def format_tables(df, opt, opt_map):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
-        # Drop all 0 exchanges prior to setting diagonal to 0
-        df = df.query('Amount != 0').reset_index(drop=True)
-
         # Find and set mtx_a diagonal exchanges to 0, then invert all signs
         df['Amount'] = -1 * np.where(
             ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
@@ -382,14 +391,14 @@ def format_tables(df, opt, opt_map):
         if opt_map in {'all', 'fedefl'}:
             col_dict['FlowUUID'] = 'FlowUUID'
 
-    df_mapped = df[list(col_dict.keys())]
-    df_mapped = (df_mapped.rename(columns=col_dict)
-                          .dropna(subset=['Amount']))
-    df_mapped['Location'] = df_mapped['Location'].fillna('US')
+    df_mapped = (df.filter(col_dict.keys())
+                   .rename(columns=col_dict)
+                   .dropna(subset=['Amount'])
+                   .fillna({'Location': 'US'}))
     return df_mapped
 
 def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
-                  query_fg=True, df_subset=None, controls=None):
+                  query_fg=True, df_subset=None, mapping=None, controls=None):
     """
     Load WARM baseline scenario matrix files, reshape tables,
     append 'idx' labels, and apply other transformations before returning
@@ -399,6 +408,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     :param opt_map: str, {'all','fedefl','useeio'}
     :param query_fg: bool, True calls query_fg_processes
     :param df_subset: pd.DataFrame, see query_fg_processes
+    :param mapping: pd.DataFrame, process mapping file
     :param controls: list, subset of warmer.controls.controls_dict
     """
     if opt_fmt not in {'tables', 'matrices'}:
@@ -415,12 +425,12 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     mtx_a, mtx_b = normalize_mtcs(a_raw, b_raw)
     if opt_mixer == 'pop':
         mtx_a, mtx_b = populate_mixer_processes(mtx_a, mtx_b, idx_a)
-    mtx_a, mtx_b = append_mtx_IDs(mtx_a, mtx_b, idx_a, idx_b)
+    mtx_a, mtx_b = append_mtx_IDs(mtx_a, idx_a, mtx_b, idx_b)
 
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
 
-    # Call elementary and/or product flow controls before mapping
+    # Call elementary and/or product flow controls before mapping steps
     if not controls:
         controls = []
     for c in controls:
@@ -429,13 +439,13 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
             df_a, df_b = func(df_a, df_b)
         else:
             print(f'control {c} does not exist.')
-
-    if opt_map in {'all', 'useeio'}:
-        df_a = map_useeio_processes(df_a)
-    if opt_map in {'all', 'fedefl'}:
-        df_b, idx_b = map_agg(df_b, idx_b)
+            
     if query_fg:
         df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
+    if opt_map in {'all', 'useeio'}:
+        df_a = map_processes(df_a, mapping)
+    if opt_map in {'all', 'fedefl'}:
+        df_b, idx_b = map_agg(df_b, idx_b)
 
     if opt_fmt == 'tables':
         df_a, df_b = map(format_tables, [df_a, df_b], ['a','b'], [opt_map, opt_map])

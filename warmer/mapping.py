@@ -35,9 +35,10 @@ def map_warmer_envflows(df, field_dict=None):
     return df
 
 
-def map_useeio_processes(df):
+def map_processes(df, mapping):
     """Update process data based on process mapping file and apply conversions."""
-    mapping = pd.read_csv(modulepath/'processmapping'/'processmapping.csv')
+    if mapping is None:
+        print('ERROR: Mapping file required')
     mapping['ConversionFactor'] = mapping['ConversionFactor'].fillna(1)
     mapping_cols = ['TargetProcessName', 'TargetUnit', 'TargetProcessID',
                     'ConversionFactor', 'process ID']
