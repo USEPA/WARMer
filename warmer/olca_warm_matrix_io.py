@@ -372,10 +372,10 @@ def format_tables(df, opt, opt_map):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
-        
+
         # Drop all 0 exchanges prior to setting diagonal to 0
         df = df.query('Amount != 0').reset_index(drop=True)
-        
+
         # Find and set mtx_a diagonal exchanges to 0, then invert all signs
         df['Amount'] = -1 * np.where(
             ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
@@ -401,7 +401,7 @@ def format_tables(df, opt, opt_map):
                    .fillna({'Location': 'US'}))
     return df_mapped
 
-def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
+def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map=None,
                   query_fg=True, df_subset=None, mapping=None, controls=None):
     """
     Load WARM baseline scenario matrix files, reshape tables,
@@ -443,7 +443,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
             df_a, df_b = func(df_a, df_b)
         else:
             print(f'control {c} does not exist.')
-            
+
     if query_fg:
         df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
     if opt_map in {'all', 'useeio'}:
