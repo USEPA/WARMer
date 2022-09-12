@@ -26,7 +26,7 @@ def control_displaced_electricity_emissions(df_a, df_b):
                         'to_flow_name == @ghg_u and '
                         # 'to_flow_name == "GHGs, unspecified"'
                         # 'Amount < 0'
-                        'Amount != 0', engine='python')
+                        'Amount != 0')
     prcs_ghg_u = set(df_b_e['from_process_ID'])
     # NOTE: elec. gen. outputs are given as negative inputs w/i olca mtx exports
     df_a_e = df_a.query('from_process_name == @e_gen and '
@@ -73,7 +73,7 @@ def remove_forest_carbon_storage(df_a, df_b):
         'not ('
         'to_flow_name == "Carbon" and '
         'to_flow_category.str.contains("resource/biotic") and '
-        'Amount != 0)', engine='python')
+        'Amount != 0)')
     return df_a, df_b
 
 def control_avoided_fertilizer_emissions(df_a, df_b):
@@ -83,7 +83,7 @@ def control_avoided_fertilizer_emissions(df_a, df_b):
         'to_flow_name == "Carbon dioxide" and '
         'to_flow_category.str.contains("air/unspecified") and '
         'from_process_name.str.contains("Anaerobic digestion") and '
-        'Amount != 0)', engine='python')
+        'Amount != 0)')
     ## TODO Add negative fertilizer output as avoided product
     # Extract Mass_N_Offset & Mass_P_Offset (or *._Applied?) parameters
     # via warmer.olca_get_results, construct avoided fertilizer product flows,
