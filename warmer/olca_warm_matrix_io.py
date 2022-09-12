@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from warmer.mapping import map_warmer_envflows, map_processes
+import warmer.controls
 
 modulepath = Path(__file__).parent
 warm_version = 'WARMv15'
@@ -100,7 +101,7 @@ def populate_mixer_processes(mtx_a, mtx_b, idx_a):
     # temp = idx_a.process_name[mixers.astype(bool)]  # check idcs & process_name
 
     y = np.diag(mixers)
-    mtx_b_pop = (mtx_b @ mtx_a @ y) + mtx_b  # '@' equivalent to np.matmul()
+    mtx_b_pop = -1*(mtx_b @ mtx_a @ y) + mtx_b  # '@' equivalent to np.matmul()
 
     mtx_a_mix = mtx_a * mixers  # multiply mtx_a columns by mixers elements {0, 1}
     mtx_a_pop = (mtx_a @ mtx_a_mix) + mtx_a
@@ -371,6 +372,10 @@ def format_tables(df, opt, opt_map):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
+        
+        # Drop all 0 exchanges prior to setting diagonal to 0
+        df = df.query('Amount != 0').reset_index(drop=True)
+        
         # Find and set mtx_a diagonal exchanges to 0, then invert all signs
         df['Amount'] = -1 * np.where(
             ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
@@ -397,7 +402,7 @@ def format_tables(df, opt, opt_map):
     return df_mapped
 
 def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
-                  query_fg=True, df_subset=None, mapping=None):
+                  query_fg=True, df_subset=None, mapping=None, controls=None):
     """
     Load WARM baseline scenario matrix files, reshape tables,
     append 'idx' labels, and apply other transformations before returning
@@ -408,6 +413,7 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
     :param query_fg: bool, True calls query_fg_processes
     :param df_subset: pd.DataFrame, see query_fg_processes
     :param mapping: pd.DataFrame, process mapping file
+    :param controls: list, subset of warmer.controls.controls_dict
     """
     if opt_fmt not in {'tables', 'matrices'}:
         print(f'"{opt_fmt}" not a valid format option')
@@ -427,6 +433,17 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map='all',
 
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
+
+    # Call elementary and/or product flow controls before mapping steps
+    if not controls:
+        controls = []
+    for c in controls:
+        if c in warmer.controls.controls_dict.keys():
+            func = getattr(warmer.controls, warmer.controls.controls_dict[c])
+            df_a, df_b = func(df_a, df_b)
+        else:
+            print(f'control {c} does not exist.')
+            
     if query_fg:
         df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
     if opt_map in {'all', 'useeio'}:
