@@ -96,7 +96,7 @@ def insert_FW_AD_fert_flows(df_a):
     """
     # prepare new fert flow/process values (ordered; N then P)
     # Note: avoided products are defined as negative inputs in the A-matrix
-    fert_offset_masses = [-x for x in get_FW_AD_fert_offsets()]  # invert sign
+    fert_offset_masses = [x for x in get_FW_AD_fert_offsets()]
     N_P = ['N', 'P']
     ferts = ['Anhydrous Ammonia', 'Triple Superphosphate (45% P2O5)']
     vals_fert_from = {
