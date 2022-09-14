@@ -205,23 +205,23 @@ def inspect_df_merge(df_pre, df_post):
     all_good = all([na_free, eq_len])
     return all_good
 
-def query_fg_processes(df_a, df_b, df_subset=None):
+def query_fg_processes(df_a, df_b, df_subset_fg=None):
     """
     Subset processes in A and B simultaneously.
     For A, keep exchanges targeting foreground (fg) processes with a
         process_class of "waste treatment pathway"
-    Optionally, providing df_subset further narrows the subset fg process
-        exchanges and overwrites their IDs; df_subset must have cols
+    Optionally, providing df_subset_fg further narrows the subset fg process
+        exchanges and overwrites their IDs; df_subset_fg must have cols
         {'process_name', 'process_ID'} of existing fg process names and new IDs
     For B, keep exchanges targeting those fg processes remaining in A.
     :param df_a: pd.DataFrame, A-matrix exchanges w/ all labels
     :param df_b: pd.DataFrame, B-matrix exchanges w/ all labels
-    :param df_subset: pd.DataFrame or None, optional processes subset to keep
+    :param df_subset_fg: pd.DataFrame or None, optional processes subset to keep
     """
     df_a_f = df_a.query('to_process_class == "waste treatment pathway"')
-    if df_subset is not None:
-        dict_keep = dict(zip(df_subset['process_name'],
-                             df_subset['process_ID']))
+    if df_subset_fg is not None:
+        dict_keep = dict(zip(df_subset_fg['process_name'],
+                             df_subset_fg['process_ID']))
         prcs_keep = list(dict_keep.keys())
 
         df_a_f = (df_a_f.query('to_process_name in @prcs_keep')
@@ -401,19 +401,20 @@ def format_tables(df, opt, opt_map):
                    .fillna({'Location': 'US'}))
     return df_mapped
 
-def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map=None,
-                  query_fg=True, df_subset=None, mapping=None, controls=None):
+def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_controls=None,
+                  opt_map=None, df_mapping=None,
+                  query_fg=True, df_subset_fg=None):
     """
     Load WARM baseline scenario matrix files, reshape tables,
     append 'idx' labels, and apply other transformations before returning
     product (A) and elemental (B) flow exchanges in table or matrix format
     :param opt_fmt: str, {'tables', 'matrices'}
     :param opt_mixer: str, switch to enable/disable mixer process flow replacements
+    :param opt_controls: list, subset of warmer.controls.controls_dict
     :param opt_map: str, {'all','fedefl','useeio'}
+    :param df_mapping: pd.DataFrame, process mapping file
     :param query_fg: bool, True calls query_fg_processes
-    :param df_subset: pd.DataFrame, see query_fg_processes
-    :param mapping: pd.DataFrame, process mapping file
-    :param controls: list, subset of warmer.controls.controls_dict
+    :param df_subset_fg: pd.DataFrame, see query_fg_processes
     """
     if opt_fmt not in {'tables', 'matrices'}:
         print(f'"{opt_fmt}" not a valid format option')
@@ -433,11 +434,10 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map=None,
 
     df_a, df_b = map(melt_mtx, [mtx_a, mtx_b], ['a', 'b'])
     df_a, df_b = label_exch_dfs(df_a, df_b, idx_a, idx_b)
-
     # Call elementary and/or product flow controls before mapping steps
-    if not controls:
-        controls = []
-    for c in controls:
+    if not opt_controls:
+        opt_controls = []
+    for c in opt_controls:
         if c in warmer.controls.controls_dict.keys():
             func = getattr(warmer.controls, warmer.controls.controls_dict[c])
             df_a, df_b = func(df_a, df_b)
@@ -445,9 +445,9 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map=None,
             print(f'control {c} does not exist.')
 
     if query_fg:
-        df_a, df_b = query_fg_processes(df_a, df_b, df_subset)
+        df_a, df_b = query_fg_processes(df_a, df_b, df_subset_fg)
     if opt_map in {'all', 'useeio'}:
-        df_a = map_processes(df_a, mapping)
+        df_a = map_processes(df_a, df_mapping)
     if opt_map in {'all', 'fedefl'}:
         df_b, idx_b = map_agg(df_b, idx_b)
 
@@ -461,7 +461,20 @@ def get_exchanges(opt_fmt='tables', opt_mixer='pop', opt_map=None,
 if __name__ == '__main__':
     df_a, df_b = get_exchanges()
 
-    # # Generate processmapping.csv
+    # %% Inspect new controls product flows
+    # df_a, df_b = get_exchanges(opt_controls=['fertilizer', 'electricity'])
+
+    # %% Inspect mixed process identification
+    # df_a, df_b = get_exchanges(opt_mixer=None)
+    # temp = df_a.query('Amount != 0 and '
+    #                   'from_process_class == "waste treatment pathway" and '
+    #                   'to_process_class == "waste treatment pathway"')
+    # temp2 = temp.to_process_name.value_counts()
+    # temp3 = temp2.where(temp2 > 1).dropna().index.tolist()
+    # temp4 = temp.query('to_process_name in @temp3')
+    # temp5 = df_b.query('from_process_name in @temp3 and Amount != 0')
+
+    # %% Generate processmapping.csv
     # idx_a = read_olca2_mtx('index_A.csv')
     # newcols = ['MatchCondition','ConversionFactor',
     #             'TargetListName','TargetProcessName','TargetUnit','LastUpdated']
