@@ -10,13 +10,13 @@ To build the `B` matrix, the environmental data frame requires the following fie
 ----------- |  ---- | ---------| -----  |
 ProcessID | str | Y | ProcessID of the source process
 ProcessName | str | N |
-Location | str | Y | two-digit code, e.g., `US`
+Location | str | Y | Two-digit code, e.g., `US`
 Amount | float | Y | Per unit of reference flow
-Flowable | str | Y | FEDEFL nomenclature
-Context | str | Y | FEDEFL nomenclature
-Unit | str | Y | FEDEFL nomenclature
-FlowUUID | str| Y | FEDEFL nomenclature
-
+Flowable | str | Y | Name of flowable
+Context | str | Y | Compartments separated by /; e.g., `emission/air`
+Unit | str | Y | Unit abbreviation; e.g., `kg`
+FlowUUID | str| Y | Unique hexadecimal ID for each Flowable
+FlowListFormat | str | Y | Name and version of the flowlist data format; e.g., `openLCA v2.0` or `FEDEFL v1.0.9`
 
 
 See [useeior SatelliteTables](https://github.com/USEPA/useeior/blob/master/format_specs/Model.md#satellitetables) for full available specs

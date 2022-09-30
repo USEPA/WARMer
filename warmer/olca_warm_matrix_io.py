@@ -363,6 +363,14 @@ def format_tables(df, opt, opt_map):
     :param opt_map: str, switch for including 'FlowUUID' header in df_b
     """
     if opt == 'a':
+        # Drop all 0 exchanges prior to setting diagonal to 0
+        df = df.query('Amount != 0').reset_index(drop=True)
+        # Find and set mtx_a diagonal exchanges to 0, then invert all signs
+        df['Amount'] = -1 * np.where(
+            ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
+             (df['Amount'] == 1)),
+            0, df['Amount'])
+        # new col names
         col_dict = {'to_process_ID': 'ProcessID',
                     'to_process_name': 'ProcessName',
                     'to_flow_unit': 'ProcessUnit',
@@ -372,20 +380,13 @@ def format_tables(df, opt, opt_map):
                     'from_process_name': 'Flow',
                     'from_flow_unit': 'FlowUnit',
                     }
-
-        # Drop all 0 exchanges prior to setting diagonal to 0
-        df = df.query('Amount != 0').reset_index(drop=True)
-
-        # Find and set mtx_a diagonal exchanges to 0, then invert all signs
-        df['Amount'] = -1 * np.where(
-            ((df['to_process_ID'] == df['from_process_ID'].str.rstrip('/US')) &
-             (df['Amount'] == 1)),
-            0, df['Amount'])
-
     elif opt == 'b':
+        # drop non-elementary flow present in B matrix export
+        df = df.query('to_flow_name != '
+                      '"Other means of transport (no truck, train or ship)"')
+        # new col names
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
-                    'from_process_category': 'ProcessCategory',
                     'from_process_location': 'Location',
                     'Amount': 'Amount',
                     'to_flow_name': 'Flowable',
@@ -394,6 +395,10 @@ def format_tables(df, opt, opt_map):
                     }
         if opt_map in {'all', 'fedefl'}:
             col_dict['FlowUUID'] = 'FlowUUID'
+            df['FlowListFormat'] = 'FEDEFL v1.0.9'
+        else:
+            df['FlowListFormat'] = 'openLCA v2.0'
+        col_dict['FlowListFormat'] = 'FlowListFormat'
 
     df_mapped = (df.filter(col_dict.keys())
                    .rename(columns=col_dict)
