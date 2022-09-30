@@ -1,22 +1,16 @@
 # Format specifications for environmental data
 
-To match the style of the `B` matrix:
-
-Rows are `flowable/context/unit` and columns are sector in the format of `code_loc`
-
-To build the `B` matrix, the environmental data frame requires the following fields:
-
  Field | Type | Required |  Note |
 ----------- |  ---- | ---------| -----  |
 ProcessID | str | Y | ProcessID of the source process
-ProcessName | str | N |
+ProcessName | str | N | Name of the source process
+ProcessCategory | st | Name of the category that the source process resides in
 Location | str | Y | Two-digit code, e.g., `US`
 Amount | float | Y | Per unit of reference flow
-Flowable | str | Y | Name of flowable
-Context | str | Y | Compartments separated by /; e.g., `emission/air`
-Unit | str | Y | Unit abbreviation; e.g., `kg`
-FlowUUID | str| Y | Unique hexadecimal ID for each Flowable
-FlowListFormat | str | Y | Name and version of the flowlist data format; e.g., `openLCA v2.0` or `FEDEFL v1.0.9`
+Flowable | str | Y | Name of flowable. See [Flow List Format](https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List/blob/master/format%20specs/FlowList.md)
+Context | str | Y | See [Flow List Format](https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List/blob/master/format%20specs/FlowList.md)
+Unit | str | Y | Unit abbreviation; e.g., `kg`. 
+FlowUUID | str| Y | See [Flow List Format](https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List/blob/master/format%20specs/FlowList.md)
+FlowListName | str | Y | Name and version of the flowlist. See `SourceFlowList` in [Flowmapping format](https://github.com/USEPA/Federal-LCA-Commons-Elementary-Flow-List/blob/master/format%20specs/FlowMapping.md)
 
-
-See [useeior SatelliteTables](https://github.com/USEPA/useeior/blob/master/format_specs/Model.md#satellitetables) for full available specs
+ 
