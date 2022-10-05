@@ -382,11 +382,13 @@ def format_tables(df, opt, opt_map):
                     }
     elif opt == 'b':
         # drop non-elementary flow present in B matrix export
-        df = df.query('to_flow_name != '
-                      '"Other means of transport (no truck, train or ship)"')
+        df = (df.copy()  # avoid SettingWithCopyWarning
+                .query('to_flow_name != '
+                       '"Other means of transport (no truck, train or ship)"'))
         # new col names
         col_dict = {'from_process_ID': 'ProcessID',
                     'from_process_name': 'ProcessName',
+                    'from_process_category': 'ProcessCategory',
                     'from_process_location': 'Location',
                     'Amount': 'Amount',
                     'to_flow_name': 'Flowable',
@@ -395,10 +397,11 @@ def format_tables(df, opt, opt_map):
                     }
         if opt_map in {'all', 'fedefl'}:
             col_dict['FlowUUID'] = 'FlowUUID'
-            df['FlowListFormat'] = 'FEDEFL v1.0.9'
+            # FlowListName already assigned via mapping.map_warmer_envflows()
         else:
-            df['FlowListFormat'] = 'openLCA v2.0'
-        col_dict['FlowListFormat'] = 'FlowListFormat'
+            col_dict['to_flow_ID'] = 'FlowUUID'
+            df['FlowListName'] = 'openLCA v2.0'
+        col_dict['FlowListName'] = 'FlowListName'
 
     df_mapped = (df.filter(col_dict.keys())
                    .rename(columns=col_dict)

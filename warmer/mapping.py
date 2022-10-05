@@ -9,12 +9,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from esupy.mapping import apply_flow_mapping
 
 modulepath = Path(__file__).parent
 
 def map_warmer_envflows(df, field_dict=None):
     """Update elementary flow data from FEDEFL."""
+    from esupy.mapping import apply_flow_mapping
+    from fedelemflowlist.globals import flow_list_specs
+
     if field_dict is None:
         # Align warmer fields with mapping, value represents field in target df
         field_dict = {'SourceName': '',
@@ -28,6 +30,7 @@ def map_warmer_envflows(df, field_dict=None):
                             keep_unmapped_rows=True, field_dict=field_dict,
                             ignore_source_name=True)
 
+    df['FlowListName'] = 'FEDEFL ' + flow_list_specs['list_version']
     # Mapping data for economic flows (e.g. 'Jobs') are marked with 'n.a.'
     # for some fields. Replace those with None.
     df = df.replace('n.a.', np.nan)
