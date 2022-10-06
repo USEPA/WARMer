@@ -400,7 +400,7 @@ def format_tables(df, opt, opt_map):
             # FlowListName already assigned via mapping.map_warmer_envflows()
         else:
             col_dict['to_flow_ID'] = 'FlowUUID'
-            df['FlowListName'] = 'openLCA v2.0'
+            df['FlowListName'] = 'WARMer v15'
         col_dict['FlowListName'] = 'FlowListName'
 
     df_mapped = (df.filter(col_dict.keys())
