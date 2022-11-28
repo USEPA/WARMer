@@ -39,11 +39,11 @@ def read_olca2_mtx(filename):
 def classify_processes(df, opt='class'):
     """
     Classify and label WARM db processes via a dictionary (selected via 'opt')
-    of regex patterns and ordered label keys stored in warmer/processmapping/
+    of regex patterns and ordered label keys stored in warmer/data/
     :param df: pandas dataframe of olca processes
     :param opt: string {'class','fgbg'}
     """
-    with open(modulepath/'processmapping'/f'WARMv15_{opt}_regex.yaml', 'r') as f:
+    with open(modulepath/'data'/f'WARMv15_{opt}_regex.yaml', 'r') as f:
         rgx = yaml.safe_load(f)
 
     is_a_index = 'process_name' in df.columns
