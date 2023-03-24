@@ -1,6 +1,7 @@
 # WARMer
 <!-- badges: start -->
 [![Python CI/CD tests](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml/badge.svg)](https://github.com/USEPA/WARMer/actions/workflows/python_CI-CD.yaml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7760862.svg)](https://doi.org/10.5281/zenodo.7760862)
 <!-- badges: end -->
 
 The **WARM** transform**er** (**WARMer**) is a Python package that extracts and processes data from the [USEPA Waste Reduction Model (WARM) v15 openLCA database](https://www.epa.gov/warm/versions-waste-reduction-model-warm#15) into tabular and matrix formats. 
